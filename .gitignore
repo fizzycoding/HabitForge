@@ -1,0 +1,73 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+.pnp.cjs
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+*.local
+.next/
+out/
+coverage/
+
+# Environment
+.env
+.env.*
+!.env.example
+.env.local
+.env.production
+.env.test
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+eslintcache
+.eslintcache
+
+# Test
+.vitest/
+*.test.ts.snap
+
+# Backend
+backend/uploads/
+backend/tmp/
+backend/public/uploads/
+
+# Frontend
+frontend/public/vite.svg
+frontend/index.html.bak
+
+# Misc
+.DS_Store
+*.pem
+npm-debug.log*
+
+# Vercel/Netlify
+.vercel
+.netlify
