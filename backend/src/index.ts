@@ -4,6 +4,7 @@ import cors from 'cors';
 import { env } from './config/env.js';
 import { connectDB } from './config/db.js';
 import authRoutes from './routes/auth.routes.js';
+import habitRoutes from './routes/habit.routes.js';
 import { errorHandler, notFound } from './middleware/error.js';
 
 const app = express();
@@ -23,6 +24,7 @@ app.get('/api/health', (_req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/habits', habitRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

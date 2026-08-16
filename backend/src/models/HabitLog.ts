@@ -25,10 +25,31 @@ const habitLogSchema = new Schema(
       default: Date.now,
     },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+    toJSON: {
+      virtuals: true,
+      versionKey: false,
+      transform: (_doc, ret: Record<string, any>) => {
+        ret.id = ret._id.toString();
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+      },
+    },
+    toObject: {
+      virtuals: true,
+      versionKey: false,
+      transform: (_doc, ret: Record<string, any>) => {
+        ret.id = ret._id.toString();
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+      },
+    },
+  },
 );
 
-// Prevent duplicate log entries for the same habit by the same user on the same date
 habitLogSchema.index({ userId: 1, habitId: 1, dateKey: 1 }, { unique: true });
 
 export const HabitLog = model('HabitLog', habitLogSchema);
