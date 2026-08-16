@@ -29,7 +29,8 @@ const userSchema = new Schema({
 
   avatar: {
     type: String,
-    default: 'default-01'
+    enum: ['avatar-01', 'avatar-02', 'avatar-03', 'avatar-04', 'avatar-05'],
+    default: 'avatar-01',
   },
 
   xp: {
@@ -59,7 +60,7 @@ const userSchema = new Schema({
 
   badges: [
     {
-      badgeId: { type: String, required: true },
+      badgeId: { type: Schema.Types.ObjectId, ref: 'Badge', required: true },
       unlockedAt: { type: Date, default: Date.now },
     },
   ],

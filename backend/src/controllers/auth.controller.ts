@@ -12,8 +12,29 @@ import {
   clearAuthCookies,
 } from '../utils/jwt.js';
 
+function formatUserResponse(user: InstanceType<typeof User>) {
+  return {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    avatar: user.avatar,
+    xp: user.xp,
+    level: user.level,
+    subscription: user.subscription,
+    badges: user.badges?.map((b) => ({
+      badgeId: b.badgeId.toString(),
+      unlockedAt: b.unlockedAt,
+    })) || [],
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+}
+
+
+// -- Register Controller --
+
 export const register = asyncHandler(async (req: Request<{}, {}, RegisterInput>, res: Response) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, avatar } = req.body;
 
   const existingUser = await User.findOne({ email });
   if (existingUser) {
@@ -21,14 +42,15 @@ export const register = asyncHandler(async (req: Request<{}, {}, RegisterInput>,
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
+
   const user = new User({
     name,
     email,
     password: hashedPassword,
+    avatar: avatar || 'avatar-01',
   });
 
   const userId = user._id.toString();
-
   const accessToken = generateAccessToken(userId);
   const refreshToken = generateRefreshToken(userId);
 
@@ -39,20 +61,14 @@ export const register = asyncHandler(async (req: Request<{}, {}, RegisterInput>,
 
   res.status(201).json({
     message: 'User registered successfully',
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      avatar: user.avatar,
-      xp: user.xp,
-      level: user.level,
-      subscription: user.subscription,
-      badges: user.badges,
-      createdAt: user.createdAt,
-    },
+    user: formatUserResponse(user),
     accessToken,
   });
+  
 });
+
+
+// -- Login Controller --
 
 export const login = asyncHandler(async (req: Request<{}, {}, LoginInput>, res: Response) => {
   const { email, password } = req.body;
@@ -73,22 +89,13 @@ export const login = asyncHandler(async (req: Request<{}, {}, LoginInput>, res: 
 
   res.json({
     message: 'Logged in successfully',
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      avatar: user.avatar,
-      xp: user.xp,
-      level: user.level,
-      subscription: user.subscription,
-      badges: user.badges,
-      createdAt: user.createdAt,
-    },
+    user: formatUserResponse(user),
     accessToken,
   });
 });
 
 
+// -- Refresh Token Controller --
 
 export const refreshToken = asyncHandler(async (req: Request, res: Response) => {
   const token = req.cookies?.refreshToken || req.body?.refreshToken;
@@ -125,6 +132,7 @@ export const refreshToken = asyncHandler(async (req: Request, res: Response) => 
 });
 
 
+// -- Logout Controller --
 
 export const logout = asyncHandler(async (req: Request, res: Response) => {
   const token = req.cookies?.refreshToken || req.body?.refreshToken;
@@ -136,12 +144,12 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
     } catch (_e) {
     }
   }
-
   clearAuthCookies(res);
   res.json({ message: 'Logged out successfully' });
 });
 
 
+// -- Me Controller --
 
 export const me = asyncHandler(async (req: AuthRequest, res: Response) => {
   if (!req.user) {
@@ -154,17 +162,6 @@ export const me = asyncHandler(async (req: AuthRequest, res: Response) => {
   }
 
   res.json({
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      avatar: user.avatar,
-      xp: user.xp,
-      level: user.level,
-      subscription: user.subscription,
-      badges: user.badges,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    },
+    user: formatUserResponse(user),
   });
 });

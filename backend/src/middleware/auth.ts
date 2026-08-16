@@ -34,7 +34,10 @@ export const protect = asyncHandler(async (req: AuthRequest, _res: Response, nex
       xp: user.xp,
       level: user.level,
       subscription: user.subscription,
-      badges: user.badges,
+      badges: user.badges.map((b) => ({
+        badgeId: b.badgeId.toString(),
+        unlockedAt: b.unlockedAt,
+      })),
     };
     next();
   } catch (err: unknown) {
