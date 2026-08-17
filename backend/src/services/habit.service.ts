@@ -8,15 +8,26 @@ import {
   calculateStreak,
   getLevelProgress,
 } from '../utils/gamification.js';
+import {
+  checkHabitBadge,
+  checkHabitCompleteBadge,
+  checkStreakBadge,
+  checkLevelBadge,
+} from './badge.service.js';
 import type { CreateHabitInput, UpdateHabitInput } from '../schemas/habit.schema.js';
-
 
 export async function createHabit(userId: string, input: CreateHabitInput) {
   const habit = await Habit.create({
     userId,
     ...input,
   });
-  return habit;
+
+  const newlyUnlockedBadges = await checkHabitBadge(userId);
+
+  return {
+    ...habit.toJSON(),
+    newlyUnlockedBadges,
+  };
 }
 
 export async function getUserHabits(
@@ -173,6 +184,13 @@ export async function markComplete(userId: string, habitId: string, targetDateKe
   user.level = newLevel;
   await user.save();
 
+  // Evaluate granular badge triggers
+  const newlyUnlockedBadges = [
+    ...(await checkHabitCompleteBadge(userId)),
+    ...(await checkStreakBadge(userId, currentStreak)),
+    ...(await checkLevelBadge(userId, newLevel)),
+  ];
+
   const levelProgress = getLevelProgress(newXP);
 
   return {
@@ -180,6 +198,7 @@ export async function markComplete(userId: string, habitId: string, targetDateKe
     log,
     xpGained,
     streak: { currentStreak, maxStreak },
+    newlyUnlockedBadges,
     user: {
       id: user._id.toString(),
       xp: user.xp,

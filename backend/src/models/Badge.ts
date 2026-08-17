@@ -5,6 +5,7 @@ const badgeSchema = new Schema(
     name: {
       type: String,
       required: true,
+      unique: true,
       trim: true,
     },
     description: {
@@ -18,6 +19,7 @@ const badgeSchema = new Schema(
     },
     requirementType: {
       type: String,
+      enum: ['streak', 'total_completions', 'level', 'habits_created'],
       required: true,
       trim: true,
     },
@@ -50,5 +52,7 @@ const badgeSchema = new Schema(
     },
   },
 );
+
+badgeSchema.index({ name: 1 }, { unique: true });
 
 export const Badge = model('Badge', badgeSchema);

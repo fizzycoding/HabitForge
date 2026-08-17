@@ -51,5 +51,6 @@ const habitLogSchema = new Schema(
 );
 
 habitLogSchema.index({ userId: 1, habitId: 1, dateKey: 1 }, { unique: true });
+habitLogSchema.index({ userId: 1, habitId: 1, completedAt: -1 });
 
 export const HabitLog = model('HabitLog', habitLogSchema);

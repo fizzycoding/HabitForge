@@ -34,6 +34,7 @@ const habitSchema = new Schema(
     isArchived: {
       type: Boolean,
       default: false,
+      index: true,
     },
   },
   {
@@ -60,5 +61,8 @@ const habitSchema = new Schema(
     },
   },
 );
+
+habitSchema.index({ userId: 1, isArchived: 1 });
+habitSchema.index({ userId: 1, createdAt: -1 });
 
 export const Habit = model('Habit', habitSchema);
