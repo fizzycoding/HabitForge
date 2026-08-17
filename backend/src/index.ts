@@ -22,15 +22,22 @@ app.use(
   }),
 );
 
-// Connect DB before mounting auth handler
 await connectDB();
 
-// Mount BetterAuth handler for /api/auth/*
-app.all('/api/auth/*', toNodeHandler(auth.handler));
+app.all('/api/auth/{*path}', toNodeHandler(auth.handler));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+app.get('/', (_req, res) => {
+  res.json({
+    name: 'HabitForge Backend API',
+    status: 'running',
+    health: '/api/health',
+    clientUrl: env.CLIENT_URL,
+  });
+});
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() });

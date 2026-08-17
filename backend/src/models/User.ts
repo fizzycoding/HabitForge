@@ -5,7 +5,9 @@ const userSchema = new Schema(
     uid: {
       type: String,
       unique: true,
-      required: true,
+      sparse: true,
+      required: false,
+      default: '',
       index: true,
     },
     name: {
@@ -34,6 +36,10 @@ const userSchema = new Schema(
       type: Number,
       default: 1,
     },
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
     subscription: {
       plan: {
         type: String,
@@ -56,6 +62,7 @@ const userSchema = new Schema(
     ],
   },
   {
+    collection: 'user',
     timestamps: true,
     toJSON: {
       virtuals: true,
@@ -80,4 +87,4 @@ const userSchema = new Schema(
   },
 );
 
-export const User = model('User', userSchema);
+export const User = model('User', userSchema, 'user');

@@ -55,7 +55,5 @@ const tagSchema = new Schema(
   },
 );
 
-tagSchema.index({ isPredefined: 1 });
-tagSchema.index({ userId: 1 });
-
 export const Tag = model('Tag', tagSchema);
+

@@ -5,27 +5,47 @@ import { env } from '../config/env.js';
 import { sendVerificationEmail, sendPasswordResetEmail } from '../utils/email.js';
 import { generateUniqueUID } from '../utils/uid.js';
 
+const dbProxy = new Proxy({} as any, {
+  get(_target, prop) {
+    const db = mongoose.connection.db;
+    if (!db) {
+      throw new Error('Database connection is not established yet.');
+    }
+    const value = Reflect.get(db, prop);
+    return typeof value === 'function' ? value.bind(db) : value;
+  },
+});
+
 export const auth = betterAuth({
-  database: mongodbAdapter(mongoose.connection.db!),
+  database: mongodbAdapter(dbProxy),
   secret: env.JWT_ACCESS_SECRET,
-  baseURL: env.CLIENT_URL,
-  emailAndPassword: {
-    enabled: true,
-    requireEmailVerification: true,
+  baseURL: `http://localhost:${env.PORT}`,
+  basePath: '/api/auth',
+  trustedOrigins: [env.CLIENT_URL],
+  advanced: {
+    disableCSRFCheck: true,
+  },
+  emailVerification: {
+    sendOnSignUp: true,
     async sendVerificationEmail(data: { user: { email: string; name: string }; token: string; url: string }) {
-      const otpCode = data.token.slice(0, 6).toUpperCase();
+      const verifyUrl = `http://localhost:${env.PORT}/api/auth/verify-email?token=${data.token}&callbackURL=${encodeURIComponent(env.CLIENT_URL)}`;
       await sendVerificationEmail({
         to: data.user.email,
         name: data.user.name,
-        token: data.token,
-        otp: otpCode,
+        url: verifyUrl,
       });
     },
+  },
+  emailAndPassword: {
+    enabled: true,
+    minPasswordLength: 6,
+    requireEmailVerification: true,
     async sendResetPassword(data: { user: { email: string; name: string }; token: string; url: string }) {
+      const resetUrl = `${env.CLIENT_URL}/reset-password?token=${data.token}`;
       await sendPasswordResetEmail({
         to: data.user.email,
         name: data.user.name,
-        token: data.token,
+        url: resetUrl,
       });
     },
   },
