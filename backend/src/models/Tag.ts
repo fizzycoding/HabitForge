@@ -1,11 +1,12 @@
 import { Schema, model } from 'mongoose';
 
-const habitSchema = new Schema(
+const tagSchema = new Schema(
   {
     userId: {
       type: Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: false,
+      default: null,
       index: true,
     },
     name: {
@@ -13,31 +14,17 @@ const habitSchema = new Schema(
       required: true,
       trim: true,
     },
-    description: {
-      type: String,
-      trim: true,
-      default: '',
-    },
     icon: {
       type: String,
-      default: 'target',
+      default: 'tag',
+      trim: true,
     },
     color: {
       type: String,
-      default: '#3B82F6',
+      default: '#6B7280',
+      trim: true,
     },
-    frequency: {
-      type: String,
-      enum: ['daily', 'weekly'],
-      default: 'daily',
-    },
-    tags: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: 'Tag',
-      },
-    ],
-    isArchived: {
+    isPredefined: {
       type: Boolean,
       default: false,
       index: true,
@@ -68,7 +55,7 @@ const habitSchema = new Schema(
   },
 );
 
-habitSchema.index({ userId: 1, isArchived: 1 });
-habitSchema.index({ userId: 1, createdAt: -1 });
+tagSchema.index({ isPredefined: 1 });
+tagSchema.index({ userId: 1 });
 
-export const Habit = model('Habit', habitSchema);
+export const Tag = model('Tag', tagSchema);

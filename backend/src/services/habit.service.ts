@@ -39,6 +39,8 @@ export async function createHabit(userId: string, input: CreateHabitInput) {
     ...input,
   });
 
+  await habit.populate('tags');
+
   const newlyUnlockedBadges = await checkHabitBadge(userId);
 
   return {
@@ -59,7 +61,7 @@ export async function getUserHabits(
     query.isArchived = false;
   }
 
-  const habits = await Habit.find(query).sort({ createdAt: -1 });
+  const habits = await Habit.find(query).populate('tags').sort({ createdAt: -1 });
   const today = new Date().toISOString().split('T')[0];
 
   const habitsWithStats = await Promise.all(
@@ -88,7 +90,7 @@ export async function getArchivedHabits(userId: string) {
 }
 
 export async function getHabitById(userId: string, habitId: string) {
-  const habit = await Habit.findOne({ _id: habitId, userId });
+  const habit = await Habit.findOne({ _id: habitId, userId }).populate('tags');
   if (!habit) {
     throw new AppError('Habit not found', 404);
   }
@@ -153,7 +155,7 @@ export async function updateHabit(userId: string, habitId: string, input: Update
     { _id: habitId, userId },
     { $set: input },
     { new: true, runValidators: true },
-  );
+  ).populate('tags');
 
   if (!habit) {
     throw new AppError('Habit not found', 404);
@@ -178,7 +180,7 @@ export async function archiveHabit(userId: string, habitId: string) {
     { _id: habitId, userId },
     { isArchived: true },
     { new: true },
-  );
+  ).populate('tags');
 
   if (!habit) {
     throw new AppError('Habit not found', 404);
@@ -192,7 +194,7 @@ export async function unarchiveHabit(userId: string, habitId: string) {
     { _id: habitId, userId },
     { isArchived: false },
     { new: true },
-  );
+  ).populate('tags');
 
   if (!habit) {
     throw new AppError('Habit not found', 404);
@@ -239,7 +241,6 @@ export async function markComplete(userId: string, habitId: string, targetDateKe
   user.level = newLevel;
   await user.save();
 
-  // Evaluate granular badge triggers
   const newlyUnlockedBadges = [
     ...(await checkHabitCompleteBadge(userId)),
     ...(await checkStreakBadge(userId, currentStreak)),

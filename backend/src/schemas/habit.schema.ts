@@ -10,6 +10,7 @@ export const createHabitSchema = z.object({
   icon: z.string().trim().optional().default('target'),
   color: z.string().trim().optional().default('#3B82F6'),
   frequency: z.enum(['daily', 'weekly']).optional().default('daily'),
+  tags: z.array(z.string()).optional().default([]),
 });
 
 export const updateHabitSchema = createHabitSchema.partial();

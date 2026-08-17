@@ -21,9 +21,10 @@ Authorization: Bearer {{accessToken}}
 ## 📚 Table of Contents
 1. [Authentication Endpoints (`/api/auth`)](#1-authentication-endpoints-apiauth)
 2. [Habit Management Endpoints (`/api/habits`)](#2-habit-management-endpoints-apihabits)
-3. [Gamification & Badges Endpoints (`/api/badges`)](#3-gamification--badges-endpoints-apibadges)
-4. [Analytics & Insights Endpoints (`/api/analytics`)](#4-analytics--insights-endpoints-apianalytics)
-5. [Payment & Subscription Endpoints (`/api/payment`)](#5-payment--subscription-endpoints-apipayment)
+3. [Tag Management Endpoints (`/api/tags`)](#3-tag-management-endpoints-apitags)
+4. [Gamification & Badges Endpoints (`/api/badges`)](#4-gamification--badges-endpoints-apibadges)
+5. [Analytics & Insights Endpoints (`/api/analytics`)](#5-analytics--insights-endpoints-apianalytics)
+6. [Payment & Subscription Endpoints (`/api/payment`)](#6-payment--subscription-endpoints-apipayment)
 
 ---
 
@@ -421,7 +422,112 @@ Toggles archive status for a habit.
 
 ---
 
-## 3. Gamification & Badges Endpoints (`/api/badges`)
+## 3. Tag Management Endpoints (`/api/tags`)
+
+### 3.1 Get All User Tags
+Retrieves all tags for the user (automatically seeds default starter tags: Health, Productivity, Fitness, Mindfulness, Finance if empty).
+
+- **Method**: `GET`
+- **Path**: `/api/tags`
+- **Access**: Protected
+- **Response (`200 OK`)**:
+```json
+{
+  "tags": [
+    {
+      "id": "66bc9876ef54321098765999",
+      "name": "Health",
+      "icon": "heart",
+      "color": "#EF4444",
+      "isPredefined": true
+    },
+    {
+      "id": "66bc9876ef54321098765998",
+      "name": "Morning Routine",
+      "icon": "sun",
+      "color": "#F59E0B",
+      "isPredefined": false
+    }
+  ]
+}
+```
+
+---
+
+### 3.2 Create Custom Tag
+Creates a custom tag for the user.
+> ⚠️ **Free Tier Restriction**: Free users can create a maximum of **5 custom tags**.
+
+- **Method**: `POST`
+- **Path**: `/api/tags`
+- **Access**: Protected
+- **Request Body**:
+```json
+{
+  "name": "Morning Routine",
+  "icon": "sun",
+  "color": "#F59E0B"
+}
+```
+- **Response (`201 Created`)**:
+```json
+{
+  "message": "Tag created successfully",
+  "tag": {
+    "id": "66bc9876ef54321098765998",
+    "name": "Morning Routine",
+    "icon": "sun",
+    "color": "#F59E0B",
+    "isPredefined": false
+  }
+}
+```
+
+---
+
+### 3.3 Update Tag
+Updates details of an existing tag.
+
+- **Method**: `PUT`
+- **Path**: `/api/tags/:id`
+- **Access**: Protected
+- **Request Body**:
+```json
+{
+  "name": "Updated Tag Name",
+  "color": "#10B981"
+}
+```
+- **Response (`200 OK`)**:
+```json
+{
+  "message": "Tag updated successfully",
+  "tag": {
+    "id": "66bc9876ef54321098765998",
+    "name": "Updated Tag Name",
+    "color": "#10B981"
+  }
+}
+```
+
+---
+
+### 3.4 Delete Tag
+Deletes a tag and automatically pulls its reference from all habits.
+
+- **Method**: `DELETE`
+- **Path**: `/api/tags/:id`
+- **Access**: Protected
+- **Response (`200 OK`)**:
+```json
+{
+  "message": "Tag deleted successfully"
+}
+```
+
+---
+
+## 4. Gamification & Badges Endpoints (`/api/badges`)
 
 ### 3.1 Get User Badges
 Retrieves all 19 predefined system badges along with the user's unlock status and timestamps.
