@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { authClient } from '../lib/auth-client.js';
 import { authApi } from '../api/auth.js';
 import type { User } from '../types/index.js';
 
@@ -6,7 +7,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (credentials: any) => Promise<void>;
-  register: (data: any) => Promise<void>;
+  register: (data: any) => Promise<any>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   isPro: boolean;
@@ -19,18 +20,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   const fetchUser = useCallback(async () => {
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      setUser(null);
-      setLoading(false);
-      return;
-    }
     try {
-      const res = await authApi.getMe();
-      setUser(res.user);
+      const sessionRes = await authClient.getSession();
+      if (sessionRes.data?.user) {
+        const res = await authApi.getMe();
+        setUser(res.user);
+      } else {
+        setUser(null);
+      }
     } catch (_err) {
       setUser(null);
-      localStorage.removeItem('accessToken');
     } finally {
       setLoading(false);
     }
@@ -41,17 +40,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [fetchUser]);
 
   const login = async (credentials: any) => {
-    const res = await authApi.login(credentials);
-    setUser(res.user);
+    const res = await authClient.signIn.email({
+      email: credentials.email,
+      password: credentials.password,
+    });
+
+    if (res.error) {
+      throw new Error(res.error.message || 'Login failed');
+    }
+
+    await fetchUser();
   };
 
   const register = async (data: any) => {
-    const res = await authApi.register(data);
-    setUser(res.user);
+    const res = await authClient.signUp.email({
+      email: data.email,
+      password: data.password,
+      name: data.name,
+      image: data.avatar || 'avatar-01',
+    } as any);
+
+    if (res.error) {
+      throw new Error(res.error.message || 'Registration failed');
+    }
+
+    return res.data;
   };
 
   const logout = async () => {
-    await authApi.logout();
+    await authClient.signOut();
     setUser(null);
   };
 

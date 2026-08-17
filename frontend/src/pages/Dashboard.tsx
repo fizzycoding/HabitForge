@@ -1,48 +1,25 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { Shield, ArrowRight } from 'lucide-react';
 import { Header } from '../components/layout/Header.js';
 import { HabitCard } from '../components/habits/HabitCard.js';
-import { habitsApi } from '../api/habits.js';
-import { analyticsApi } from '../api/analytics.js';
-import { badgesApi } from '../api/badges.js';
+import { useHabits, useHabitMutations } from '../hooks/useHabits.js';
+import { useDashboardData } from '../hooks/useDashboard.js';
+import { useBadges } from '../hooks/useBadges.js';
 import { useAuth } from '../context/AuthContext.js';
 import { getLevelTitle } from '../utils/constants.js';
-import type { Habit, Badge, DashboardMetrics } from '../types/index.js';
 
 export const Dashboard: React.FC = () => {
-  const { user, refreshUser } = useAuth();
-  const [habits, setHabits] = useState<Habit[]>([]);
-  const [badges, setBadges] = useState<Badge[]>([]);
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  const { user } = useAuth();
+  const { data: habits = [] } = useHabits('all');
+  const { data: badges = [] } = useBadges();
+  const { data: dashData } = useDashboardData();
+  const { toggleComplete } = useHabitMutations();
 
-  const loadData = useCallback(async () => {
-    try {
-      const [habitsRes, badgesRes, dashRes] = await Promise.all([
-        habitsApi.getAll('active'),
-        badgesApi.getAll(),
-        analyticsApi.getDashboard(),
-      ]);
-      setHabits(habitsRes.habits);
-      setBadges(badgesRes.badges);
-      setMetrics(dashRes.metrics);
-    } catch (_e) {}
-  }, []);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  const metrics = dashData?.metrics;
 
   const handleToggleComplete = async (habitId: string, isCompleted: boolean) => {
-    try {
-      if (isCompleted) {
-        await habitsApi.uncomplete(habitId);
-      } else {
-        await habitsApi.complete(habitId);
-      }
-      await refreshUser();
-      await loadData();
-    } catch (_e) {}
+    await toggleComplete.mutateAsync({ id: habitId, isCompleted });
   };
 
   const completedCount = habits.filter((h) => h.isCompletedToday).length;

@@ -8,7 +8,6 @@ import {
   Award,
   Zap,
   Settings,
-  Shield,
   Crown,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.js';
@@ -28,13 +27,11 @@ export const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-64 bg-[#0B0F19]/90 border-r border-slate-800/80 flex flex-col justify-between p-4 select-none shrink-0">
+    <aside className="w-64 h-screen sticky top-0 bg-[#0B0F19]/90 border-r border-slate-800/80 flex flex-col justify-between p-4 select-none shrink-0 overflow-y-auto z-40">
       <div>
         {/* Brand Logo */}
         <div className="flex items-center gap-3 px-3 py-4 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">
-            <Shield className="w-6 h-6 text-white" />
-          </div>
+          <img src="/logo.png" alt="HabitForge Logo" className="w-9 h-9 object-contain drop-shadow" />
           <span className="font-extrabold text-xl tracking-wider text-white">
             HABIT<span className="text-indigo-400">FORGE</span>
           </span>
@@ -75,7 +72,7 @@ export const Sidebar: React.FC = () => {
       {user && (
         <NavLink
           to="/profile"
-          className="flex items-center gap-3 p-3 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-indigo-500/50 transition-all group"
+          className="flex items-center gap-3 p-3 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-indigo-500/50 transition-all group mt-4"
         >
           <div className="relative">
             <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 p-0.5">

@@ -1,19 +1,7 @@
 import React from 'react';
-import { Check, Flame, Edit2, Trash2, BookOpen, Droplet, Activity, Smile, Target, Zap, Heart, Moon, Coffee, Dumbbell } from 'lucide-react';
+import { Check, Flame, Edit2, Trash2 } from 'lucide-react';
+import { getIcon } from '../../utils/getIcon.js';
 import type { Habit } from '../../types/index.js';
-
-const ICON_MAP: Record<string, React.ElementType> = {
-  'book-open': BookOpen,
-  droplet: Droplet,
-  activity: Activity,
-  smile: Smile,
-  target: Target,
-  zap: Zap,
-  heart: Heart,
-  moon: Moon,
-  coffee: Coffee,
-  dumbbell: Dumbbell,
-};
 
 interface HabitCardProps {
   habit: Habit;
@@ -28,7 +16,6 @@ export const HabitCard: React.FC<HabitCardProps> = ({
   onEdit,
   onDelete,
 }) => {
-  const IconComponent = ICON_MAP[habit.icon] || Target;
   const isCompleted = habit.isCompletedToday || false;
 
   return (
@@ -45,7 +32,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({
           className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-lg"
           style={{ backgroundColor: `${habit.color}20`, color: habit.color }}
         >
-          <IconComponent className="w-6 h-6" />
+          {getIcon(habit.icon, { className: 'w-6 h-6' })}
         </div>
 
         {/* Info */}

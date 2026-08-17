@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Edit2, Shield, Flame, CheckCircle, Award, X } from 'lucide-react';
-import { Header } from '../components/layout/Header.js';
 import { authApi } from '../api/auth.js';
 import { badgesApi } from '../api/badges.js';
 import { analyticsApi } from '../api/analytics.js';
@@ -53,7 +52,10 @@ export const ProfilePage: React.FC = () => {
 
   return (
     <div>
-      <Header title="Profile" subtitle="Your journey, your story." />
+      <div className="mb-6">
+        <h1 className="text-2xl font-extrabold text-white tracking-tight">Profile 👤</h1>
+        <p className="text-sm text-slate-400 mt-1">Your journey, your story.</p>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Avatar & Main Profile Stats */}
@@ -196,7 +198,7 @@ export const ProfilePage: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                  Avatar Avatar Choice
+                  Avatar Choice
                 </label>
                 <div className="flex gap-3">
                   {AVATARS.map((av) => (

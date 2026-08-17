@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 import { Lock, Crown } from 'lucide-react';
-import { Header } from '../components/layout/Header.js';
 import { analyticsApi } from '../api/analytics.js';
 import { useAuth } from '../context/AuthContext.js';
 import type { HeatmapDay } from '../types/index.js';
@@ -44,10 +43,10 @@ export const AnalyticsPage: React.FC = () => {
 
   return (
     <div>
-      <Header
-        title="Analytics"
-        subtitle="Track your progress and become better every day."
-      />
+      <div className="mb-6">
+        <h1 className="text-2xl font-extrabold text-white tracking-tight">Analytics 📊</h1>
+        <p className="text-sm text-slate-400 mt-1">Track your progress and become better every day.</p>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Completion Rate Chart Card */}

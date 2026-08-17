@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Tag as TagIcon, Plus, Trash2, Key, LogOut } from 'lucide-react';
-import { Header } from '../components/layout/Header.js';
 import { tagsApi } from '../api/tags.js';
 import { authApi } from '../api/auth.js';
 import { useAuth } from '../context/AuthContext.js';
@@ -64,7 +63,10 @@ export const SettingsPage: React.FC = () => {
 
   return (
     <div>
-      <Header title="Settings" subtitle="Manage custom tags and account security." />
+      <div className="mb-6">
+        <h1 className="text-2xl font-extrabold text-white tracking-tight">Settings ⚙️</h1>
+        <p className="text-sm text-slate-400 mt-1">Manage custom tags and account security.</p>
+      </div>
 
       <div className="space-y-8 max-w-4xl">
         {/* Custom Tag Management Card */}

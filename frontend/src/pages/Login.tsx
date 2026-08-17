@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.js';
 
 export const Login: React.FC = () => {
@@ -19,7 +18,7 @@ export const Login: React.FC = () => {
       await login({ email, password });
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed');
+      setError(err.message || 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -29,8 +28,8 @@ export const Login: React.FC = () => {
     <div className="min-h-screen bg-[#070A12] text-slate-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
         <div className="flex flex-col items-center mb-8 text-center">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 mb-3">
-            <Shield className="w-7 h-7 text-white" />
+          <div className="w-14 h-14 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center shadow-lg mb-3">
+            <img src="/logo.png" alt="HabitForge Logo" className="w-9 h-9 object-contain" />
           </div>
           <h1 className="text-2xl font-extrabold text-white">Welcome Back</h1>
           <p className="text-sm text-slate-400 mt-1">Log in to continue your habit quests</p>

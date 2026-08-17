@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Crown, Check } from 'lucide-react';
-import { Header } from '../components/layout/Header.js';
 import { paymentApi } from '../api/payment.js';
 import { useAuth } from '../context/AuthContext.js';
 
@@ -52,7 +51,10 @@ export const UpgradePage: React.FC = () => {
 
   return (
     <div>
-      <Header title="Upgrade to Pro" subtitle="Unlock unlimited habits and advanced 365-day analytics." />
+      <div className="mb-6">
+        <h1 className="text-2xl font-extrabold text-white tracking-tight">Upgrade to Pro 👑</h1>
+        <p className="text-sm text-slate-400 mt-1">Unlock unlimited habits and advanced 365-day analytics.</p>
+      </div>
 
       {error && (
         <div className="mb-6 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm">
