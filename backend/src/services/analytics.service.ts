@@ -5,8 +5,7 @@ import { User } from '../models/User.js';
 import { AppError } from '../middleware/error.js';
 import { calculateStreak, getLevelProgress } from '../utils/gamification.js';
 
-
-//  Dashboard Overview & Summary Metrics
+// Dashboard Overview & Summary Metrics
 
 export async function getDashboardOverview(userId: string) {
   const user = await User.findById(userId);
@@ -76,9 +75,7 @@ export async function getDashboardOverview(userId: string) {
   };
 }
 
-
-
-// GitHub-Style 365-Day Yearly Activity Heatmap
+// 365-Day Yearly Activity Heatmap
 
 export async function getYearlyHeatmap(userId: string) {
   const endDateObj = new Date();
@@ -204,6 +201,113 @@ export async function getMonthlyChartAnalysis(userId: string) {
 }
 
 
+export async function getMonthlyDailyReport(userId: string, targetMonthStr?: string) {
+  const now = new Date();
+
+  let year: number;
+  let month: number;
+
+  if (targetMonthStr && /^\d{4}-\d{2}$/.test(targetMonthStr)) {
+    const [y, m] = targetMonthStr.split('-').map(Number);
+    year = y;
+    month = m;
+  } else {
+    year = now.getFullYear();
+    month = now.getMonth() + 1;
+  }
+
+  const formattedMonth = String(month).padStart(2, '0');
+  const yearMonth = `${year}-${formattedMonth}`;
+
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const startDateKey = `${yearMonth}-01`;
+  const endDateKey = `${yearMonth}-${String(daysInMonth).padStart(2, '0')}`;
+
+  const habits = await Habit.find({ userId }).select('_id name color icon isArchived');
+  const activeHabitsCount = habits.filter((h) => !h.isArchived).length;
+  const habitMap = new Map(habits.map((h) => [h._id.toString(), h]));
+
+  const logs = await HabitLog.find({
+    userId,
+    dateKey: { $gte: startDateKey, $lte: endDateKey },
+  });
+
+  const dailyLogsMap = new Map<string, Array<any>>();
+  for (const log of logs) {
+    const list = dailyLogsMap.get(log.dateKey) || [];
+    const habit = habitMap.get(log.habitId.toString());
+    if (habit) {
+      list.push({
+        id: habit._id.toString(),
+        name: habit.name,
+        color: habit.color,
+        icon: habit.icon,
+        completedAt: log.completedAt,
+      });
+    }
+    dailyLogsMap.set(log.dateKey, list);
+  }
+
+  const days = [];
+  let totalCompletionsInMonth = 0;
+  let perfectDaysCount = 0;
+
+  const dayOfWeekNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dayStr = String(day).padStart(2, '0');
+    const dateKey = `${yearMonth}-${dayStr}`;
+    const dateObj = new Date(year, month - 1, day);
+    const dayOfWeek = dayOfWeekNames[dateObj.getDay()];
+
+    const completedHabits = dailyLogsMap.get(dateKey) || [];
+    const completedCount = completedHabits.length;
+    totalCompletionsInMonth += completedCount;
+
+    const completionRate =
+      activeHabitsCount > 0 ? Math.min(100, Math.round((completedCount / activeHabitsCount) * 100)) : 0;
+
+    const isPerfectDay = completedCount >= activeHabitsCount && activeHabitsCount > 0;
+    if (isPerfectDay) {
+      perfectDaysCount++;
+    }
+
+    days.push({
+      date: dateKey,
+      dayNumber: day,
+      dayOfWeek,
+      completedCount,
+      totalActiveHabits: activeHabitsCount,
+      completionRate,
+      isPerfectDay,
+      completedHabits,
+    });
+  }
+
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
+
+  const monthName = `${monthNames[month - 1]} ${year}`;
+  const averageDailyCompletions = Math.round((totalCompletionsInMonth / daysInMonth) * 10) / 10;
+
+  return {
+    yearMonth,
+    monthName,
+    year,
+    month,
+    daysInMonth,
+    summary: {
+      totalCompletionsInMonth,
+      activeHabitsCount,
+      perfectDaysCount,
+      averageDailyCompletions,
+    },
+    days,
+  };
+}
+
 export async function getCompletionHistory(userId: string, daysCount: number = 30) {
   const result = [];
   const activeHabitsCount = await Habit.countDocuments({ userId, isArchived: false });
@@ -229,7 +333,6 @@ export async function getCompletionHistory(userId: string, daysCount: number = 3
 
   return result;
 }
-
 
 export async function getHabitsAnalytics(userId: string) {
   const habits = await Habit.find({ userId }).sort({ createdAt: -1 });

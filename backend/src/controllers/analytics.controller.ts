@@ -3,6 +3,7 @@ import {
   getDashboardOverview,
   getYearlyHeatmap,
   getMonthlyChartAnalysis,
+  getMonthlyDailyReport,
   getCompletionHistory,
   getHabitsAnalytics,
 } from '../services/analytics.service.js';
@@ -25,6 +26,13 @@ export const getMonthlyChart = asyncHandler(async (req: AuthRequest, res: Respon
   const userId = req.user!.id;
   const monthlyData = await getMonthlyChartAnalysis(userId);
   res.json({ monthlyData });
+});
+
+export const getMonthlyReport = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.id;
+  const monthStr = (req.query.month || req.query.date) as string | undefined;
+  const report = await getMonthlyDailyReport(userId, monthStr);
+  res.json(report);
 });
 
 export const getHistory = asyncHandler(async (req: AuthRequest, res: Response) => {

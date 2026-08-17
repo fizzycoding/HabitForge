@@ -14,7 +14,6 @@ const userSchema = new Schema(
       unique: true,
       lowercase: true,
       trim: true,
-      index: true,
     },
     password: {
       type: String,
@@ -83,7 +82,5 @@ const userSchema = new Schema(
     },
   },
 );
-
-userSchema.index({ email: 1 }, { unique: true });
 
 export const User = model('User', userSchema);

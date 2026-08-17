@@ -53,6 +53,4 @@ const badgeSchema = new Schema(
   },
 );
 
-badgeSchema.index({ name: 1 }, { unique: true });
-
 export const Badge = model('Badge', badgeSchema);

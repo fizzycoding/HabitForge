@@ -21,34 +21,35 @@ export const notFound: RequestHandler = (req, _res, next) => {
 };
 
 export const errorHandler = (
-  err: Error,
+  err: Error | any,
   _req: Request,
   res: Response,
   _next: NextFunction,
 ): void => {
-  const statusCode = err instanceof AppError ? err.statusCode : 500;
+  const statusCode = err instanceof AppError ? err.statusCode : (err?.statusCode || 500);
+  const message = err?.message || 'Internal server error';
 
-  if (err.name === 'ValidationError') {
-    res.status(400).json({ message: err.message });
+  if (err?.name === 'ValidationError') {
+    res.status(400).json({ message });
     return;
   }
 
-  if (err.name === 'CastError') {
+  if (err?.name === 'CastError') {
     res.status(400).json({ message: 'Invalid id format' });
     return;
   }
 
-  if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+  if (err?.name === 'JsonWebTokenError' || err?.name === 'TokenExpiredError') {
     res.status(401).json({ message: 'Invalid or expired token' });
     return;
   }
 
-  if (err.message.includes('duplicate key')) {
+  if (typeof message === 'string' && message.includes('duplicate key')) {
     res.status(409).json({ message: 'Resource already exists' });
     return;
   }
 
   res.status(statusCode).json({
-    message: statusCode === 500 ? 'Internal server error' : err.message,
+    message: statusCode === 500 ? 'Internal server error' : message,
   });
 };
