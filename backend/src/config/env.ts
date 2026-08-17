@@ -10,12 +10,16 @@ const envSchema = z.object({
   ACCESS_TOKEN_EXPIRES_IN: z.string().default('15m'),
   REFRESH_TOKEN_EXPIRES_IN: z.string().default('7d'),
   CLIENT_URL: z.string().url().default('http://localhost:5173'),
+  RAZORPAY_KEY_ID: z.string().default('rzp_test_key_id'),
+  RAZORPAY_KEY_SECRET: z.string().default('rzp_test_key_secret'),
 });
 
 const parsed = envSchema.safeParse({
   ...process.env,
   JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || 'dev-only-access-secret-min-16-chars',
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || (process.env.JWT_SECRET ? `${process.env.JWT_SECRET}-refresh` : 'dev-only-refresh-secret-min-16-chars'),
+  RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID || 'rzp_test_key_id',
+  RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET || 'rzp_test_key_secret',
 });
 
 if (!parsed.success) {
@@ -24,4 +28,3 @@ if (!parsed.success) {
 }
 
 export const env = parsed.data;
-

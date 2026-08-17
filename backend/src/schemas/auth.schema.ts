@@ -29,6 +29,10 @@ export const loginSchema = z.object({
     .min(1, 'Password is required'),
 });
 
+export const updateSubscriptionSchema = z.object({
+  plan: z.enum(['free', 'monthly', 'yearly']),
+});
+
 export const authUserSchema = z.object({
   id: z.string(),
   email: z.string().email(),
@@ -56,6 +60,5 @@ export const authUserSchema = z.object({
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type UpdateSubscriptionInput = z.infer<typeof updateSubscriptionSchema>;
 export type AuthUser = z.infer<typeof authUserSchema>;
-
-

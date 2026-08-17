@@ -45,3 +45,21 @@ export const protect = asyncHandler(async (req: AuthRequest, _res: Response, nex
     throw new AppError('Invalid or expired access token', 401);
   }
 });
+
+export function isProUser(user?: AuthUser): boolean {
+  if (!user || !user.subscription) return false;
+  const { plan, status } = user.subscription;
+  return plan !== 'free' && status === 'active';
+}
+
+export const requirePro = asyncHandler(async (req: AuthRequest, _res: Response, next: NextFunction) => {
+  if (!req.user) {
+    throw new AppError('Not authorized', 401);
+  }
+
+  if (!isProUser(req.user)) {
+    throw new AppError('Pro subscription required to access this feature', 403);
+  }
+
+  next();
+});

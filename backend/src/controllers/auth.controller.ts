@@ -3,7 +3,11 @@ import bcrypt from 'bcryptjs';
 import { User } from '../models/User.js';
 import { AppError, asyncHandler } from '../middleware/error.js';
 import type { AuthRequest } from '../middleware/auth.js';
-import type { RegisterInput, LoginInput } from '../schemas/auth.schema.js';
+import type {
+  RegisterInput,
+  LoginInput,
+  UpdateSubscriptionInput,
+} from '../schemas/auth.schema.js';
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -21,15 +25,15 @@ function formatUserResponse(user: InstanceType<typeof User>) {
     xp: user.xp,
     level: user.level,
     subscription: user.subscription,
-    badges: user.badges?.map((b) => ({
-      badgeId: b.badgeId.toString(),
-      unlockedAt: b.unlockedAt,
-    })) || [],
+    badges:
+      user.badges?.map((b) => ({
+        badgeId: b.badgeId.toString(),
+        unlockedAt: b.unlockedAt,
+      })) || [],
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
 }
-
 
 // -- Register Controller --
 
@@ -64,9 +68,7 @@ export const register = asyncHandler(async (req: Request<{}, {}, RegisterInput>,
     user: formatUserResponse(user),
     accessToken,
   });
-  
 });
-
 
 // -- Login Controller --
 
@@ -93,7 +95,6 @@ export const login = asyncHandler(async (req: Request<{}, {}, LoginInput>, res: 
     accessToken,
   });
 });
-
 
 // -- Refresh Token Controller --
 
@@ -131,7 +132,6 @@ export const refreshToken = asyncHandler(async (req: Request, res: Response) => 
   });
 });
 
-
 // -- Logout Controller --
 
 export const logout = asyncHandler(async (req: Request, res: Response) => {
@@ -141,13 +141,11 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
     try {
       const decoded = verifyRefreshToken(token);
       await User.findByIdAndUpdate(decoded.id, { $unset: { refreshToken: 1 } });
-    } catch (_e) {
-    }
+    } catch (_e) {}
   }
   clearAuthCookies(res);
   res.json({ message: 'Logged out successfully' });
 });
-
 
 // -- Me Controller --
 
@@ -162,6 +160,32 @@ export const me = asyncHandler(async (req: AuthRequest, res: Response) => {
   }
 
   res.json({
+    user: formatUserResponse(user),
+  });
+});
+
+// -- Update Subscription Controller --
+
+export const updateSubscription = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { plan } = req.body as UpdateSubscriptionInput;
+  const userId = req.user!.id;
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError('User not found', 404);
+  }
+
+  user.subscription = {
+    plan,
+    status: 'active',
+    startDate: new Date(),
+    endDate: plan === 'free' ? undefined : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+  };
+
+  await user.save();
+
+  res.json({
+    message: `Subscription updated to ${plan} plan successfully`,
     user: formatUserResponse(user),
   });
 });

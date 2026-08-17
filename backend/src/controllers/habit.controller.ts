@@ -4,6 +4,7 @@ import {
   getUserHabits,
   getArchivedHabits as getArchivedHabitsService,
   getHabitById as getHabitByIdService,
+  getHabitLogs as getHabitLogsService,
   updateHabit as updateHabitService,
   deleteHabit as deleteHabitService,
   archiveHabit as archiveHabitService,
@@ -41,6 +42,16 @@ export const getHabitById = asyncHandler(async (req: AuthRequest, res: Response)
   const habitId = req.params.id as string;
   const habit = await getHabitByIdService(userId, habitId);
   res.json({ habit });
+});
+
+export const getHabitLogs = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.id;
+  const habitId = req.params.id as string;
+  const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
+  const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
+
+  const result = await getHabitLogsService(userId, habitId, page, limit);
+  res.json(result);
 });
 
 export const updateHabit = asyncHandler(async (req: AuthRequest, res: Response) => {

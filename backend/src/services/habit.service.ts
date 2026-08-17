@@ -17,6 +17,23 @@ import {
 import type { CreateHabitInput, UpdateHabitInput } from '../schemas/habit.schema.js';
 
 export async function createHabit(userId: string, input: CreateHabitInput) {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError('User not found', 404);
+  }
+
+  const isPro = user.subscription?.plan !== 'free' && user.subscription?.status === 'active';
+
+  if (!isPro) {
+    const activeHabitCount = await Habit.countDocuments({ userId, isArchived: false });
+    if (activeHabitCount >= 5) {
+      throw new AppError(
+        'Free plan limit reached (maximum 5 active habits). Upgrade to Pro for unlimited habits.',
+        403,
+      );
+    }
+  }
+
   const habit = await Habit.create({
     userId,
     ...input,
@@ -90,6 +107,44 @@ export async function getHabitById(userId: string, habitId: string) {
     maxStreak,
     totalCompletions: logs.length,
     recentLogs: logs.slice(-10),
+  };
+}
+
+export async function getHabitLogs(
+  userId: string,
+  habitId: string,
+  page: number = 1,
+  limit: number = 50,
+) {
+  const habit = await Habit.findOne({ _id: habitId, userId });
+  if (!habit) {
+    throw new AppError('Habit not found', 404);
+  }
+
+  const validPage = Math.max(1, page);
+  const validLimit = Math.min(100, Math.max(1, limit));
+  const skip = (validPage - 1) * validLimit;
+
+  const [total, rawLogs] = await Promise.all([
+    HabitLog.countDocuments({ userId, habitId }),
+    HabitLog.find({ userId, habitId })
+      .sort({ dateKey: -1, completedAt: -1 })
+      .skip(skip)
+      .limit(validLimit),
+  ]);
+
+  const totalPages = Math.ceil(total / validLimit);
+
+  return {
+    logs: rawLogs.map((l) => l.toJSON()),
+    pagination: {
+      total,
+      page: validPage,
+      limit: validLimit,
+      totalPages,
+      hasNextPage: validPage < totalPages,
+      hasPrevPage: validPage > 1,
+    },
   };
 }
 

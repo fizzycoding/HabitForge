@@ -7,6 +7,7 @@ import {
   getAllHabits,
   getArchivedHabits,
   getHabitById,
+  getHabitLogs,
   updateHabit,
   deleteHabit,
   archiveHabit,
@@ -23,6 +24,7 @@ router.post('/', validate(createHabitSchema), createHabit);
 router.get('/', getAllHabits);
 router.get('/archived', getArchivedHabits);
 router.get('/:id', getHabitById);
+router.get('/:id/logs', getHabitLogs);
 router.put('/:id', validate(updateHabitSchema), updateHabit);
 router.delete('/:id', deleteHabit);
 

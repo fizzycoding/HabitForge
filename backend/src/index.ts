@@ -6,6 +6,8 @@ import { connectDB } from './config/db.js';
 import authRoutes from './routes/auth.routes.js';
 import habitRoutes from './routes/habit.routes.js';
 import badgeRoutes from './routes/badge.routes.js';
+import analyticsRoutes from './routes/analytics.routes.js';
+import paymentRoutes from './routes/payment.routes.js';
 import { errorHandler, notFound } from './middleware/error.js';
 
 const app = express();
@@ -27,6 +29,8 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/habits', habitRoutes);
 app.use('/api/badges', badgeRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/payment', paymentRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
