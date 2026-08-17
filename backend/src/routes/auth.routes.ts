@@ -4,7 +4,6 @@ import {
   login,
   refreshToken,
   logout,
-  me,
   updateSubscription,
 } from '../controllers/auth.controller.js';
 import { protect } from '../middleware/auth.js';
@@ -21,7 +20,6 @@ router.post('/register', validate(registerSchema), register);
 router.post('/login', validate(loginSchema), login);
 router.post('/refresh', refreshToken);
 router.post('/logout', logout);
-router.get('/me', protect, me);
 router.patch('/subscription', protect, validate(updateSubscriptionSchema), updateSubscription);
 
 export default router;

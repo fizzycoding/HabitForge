@@ -20,7 +20,7 @@ export const protect = asyncHandler(async (req: AuthRequest, _res: Response, nex
 
   try {
     const decoded = verifyAccessToken(token);
-    const user = await User.findById(decoded.id).select('_id email name avatar xp level subscription badges');
+    const user = await User.findById(decoded.id).select('_id uid email name avatar xp level subscription badges');
     
     if (!user) {
       throw new AppError('User no longer exists', 401);
@@ -28,6 +28,7 @@ export const protect = asyncHandler(async (req: AuthRequest, _res: Response, nex
 
     req.user = {
       id: user._id.toString(),
+      uid: user.uid,
       email: user.email,
       name: user.name,
       avatar: user.avatar,

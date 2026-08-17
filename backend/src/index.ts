@@ -4,6 +4,7 @@ import cors from 'cors';
 import { env } from './config/env.js';
 import { connectDB } from './config/db.js';
 import authRoutes from './routes/auth.routes.js';
+import userRoutes from './routes/user.routes.js';
 import habitRoutes from './routes/habit.routes.js';
 import badgeRoutes from './routes/badge.routes.js';
 import analyticsRoutes from './routes/analytics.routes.js';
@@ -28,6 +29,7 @@ app.get('/api/health', (_req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/habits', habitRoutes);
 app.use('/api/badges', badgeRoutes);
 app.use('/api/analytics', analyticsRoutes);

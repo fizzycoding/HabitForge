@@ -2,6 +2,12 @@ import { Schema, model } from 'mongoose';
 
 const userSchema = new Schema(
   {
+    uid: {
+      type: String,
+      unique: true,
+      required: true,
+      index: true,
+    },
     name: {
       type: String,
       required: true,

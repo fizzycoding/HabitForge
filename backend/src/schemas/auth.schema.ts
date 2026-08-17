@@ -12,7 +12,7 @@ export const registerSchema = z.object({
     .toLowerCase(),
   password: z
     .string()
-    .min(6, 'Password must be at least 6 characters'), 
+    .min(6, 'Password must be at least 6 characters'),
   avatar: z
     .enum(['avatar-01', 'avatar-02', 'avatar-03', 'avatar-04', 'avatar-05'])
     .default('avatar-01'),
@@ -29,12 +29,30 @@ export const loginSchema = z.object({
     .min(1, 'Password is required'),
 });
 
+export const updateProfileSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(2, 'Name must be at least 2 characters')
+    .max(100, 'Name must not exceed 100 characters')
+    .optional(),
+  avatar: z
+    .enum(['avatar-01', 'avatar-02', 'avatar-03', 'avatar-04', 'avatar-05'])
+    .optional(),
+});
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: z.string().min(6, 'New password must be at least 6 characters'),
+});
+
 export const updateSubscriptionSchema = z.object({
   plan: z.enum(['free', 'monthly', 'yearly']),
 });
 
 export const authUserSchema = z.object({
   id: z.string(),
+  uid: z.string().optional(),
   email: z.string().email(),
   name: z.string(),
   avatar: z.string().default('avatar-01'),
@@ -60,5 +78,7 @@ export const authUserSchema = z.object({
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type UpdateSubscriptionInput = z.infer<typeof updateSubscriptionSchema>;
 export type AuthUser = z.infer<typeof authUserSchema>;

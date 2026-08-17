@@ -20,11 +20,12 @@ Authorization: Bearer {{accessToken}}
 
 ## 📚 Table of Contents
 1. [Authentication Endpoints (`/api/auth`)](#1-authentication-endpoints-apiauth)
-2. [Habit Management Endpoints (`/api/habits`)](#2-habit-management-endpoints-apihabits)
-3. [Tag Management Endpoints (`/api/tags`)](#3-tag-management-endpoints-apitags)
-4. [Gamification & Badges Endpoints (`/api/badges`)](#4-gamification--badges-endpoints-apibadges)
-5. [Analytics & Insights Endpoints (`/api/analytics`)](#5-analytics--insights-endpoints-apianalytics)
-6. [Payment & Subscription Endpoints (`/api/payment`)](#6-payment--subscription-endpoints-apipayment)
+2. [User Profile Endpoints (`/api/users`)](#2-user-profile-endpoints-apiusers)
+3. [Habit Management Endpoints (`/api/habits`)](#3-habit-management-endpoints-apihabits)
+4. [Tag Management Endpoints (`/api/tags`)](#4-tag-management-endpoints-apitags)
+5. [Gamification & Badges Endpoints (`/api/badges`)](#5-gamification--badges-endpoints-apibadges)
+6. [Analytics & Insights Endpoints (`/api/analytics`)](#6-analytics--insights-endpoints-apianalytics)
+7. [Payment & Subscription Endpoints (`/api/payment`)](#7-payment--subscription-endpoints-apipayment)
 
 ---
 
@@ -129,39 +130,9 @@ Issues a new access token using a valid refresh token.
 
 ---
 
-### 1.4 Get Current User (`/me`)
-Fetches the profile of the currently logged-in user.
-
-- **Method**: `GET`
-- **Path**: `/api/auth/me`
-- **Access**: Protected
-- **Response (`200 OK`)**:
-```json
-{
-  "user": {
-    "id": "6a8176aa8e3150a5403a4d51",
-    "name": "John Doe",
-    "email": "john@example.com",
-    "avatar": "avatar-01",
-    "xp": 140,
-    "level": 3,
-    "subscription": {
-      "plan": "free",
-      "status": "active"
-    },
-    "badges": [
-      {
-        "badgeId": "66bc9876ef54321098765410",
-        "unlockedAt": "2026-08-17T06:00:00.000Z"
-      }
-    ]
-  }
-}
-```
-
 ---
 
-### 1.5 Update Subscription (Dev Mock)
+### 1.4 Update Subscription (Dev Mock)
 Manually updates user subscription plan for development testing.
 
 - **Method**: `PATCH`
@@ -179,12 +150,134 @@ Manually updates user subscription plan for development testing.
   "message": "Subscription updated to monthly plan successfully",
   "user": {
     "id": "6a8176aa8e3150a5403a4d51",
+    "uid": "84920481",
     "subscription": {
       "plan": "monthly",
       "status": "active",
       "startDate": "2026-08-17T06:00:00.000Z",
       "endDate": "2027-08-17T06:00:00.000Z"
     }
+  }
+}
+```
+
+---
+
+## 2. User Profile Endpoints (`/api/users`)
+
+### 2.1 Get Current User Profile (`/me`)
+Fetches the profile of the currently logged-in user with leveling progress.
+
+- **Method**: `GET`
+- **Path**: `/api/users/me`
+- **Access**: Protected
+- **Response (`200 OK`)**:
+```json
+{
+  "user": {
+    "id": "6a8176aa8e3150a5403a4d51",
+    "uid": "84920481",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "avatar": "avatar-01",
+    "xp": 140,
+    "level": 3,
+    "progress": {
+      "level": 3,
+      "currentXP": 140,
+      "progressPercentage": 32
+    },
+    "subscription": {
+      "plan": "free",
+      "status": "active"
+    },
+    "badges": []
+  }
+}
+```
+
+---
+
+### 2.2 Update Profile (`/me`)
+Updates user name and/or avatar.
+
+- **Method**: `PUT`
+- **Path**: `/api/users/me`
+- **Access**: Protected
+- **Request Body**:
+```json
+{
+  "name": "Jane Doe",
+  "avatar": "avatar-03" // Options: 'avatar-01', 'avatar-02', 'avatar-03', 'avatar-04', 'avatar-05'
+}
+```
+- **Response (`200 OK`)**:
+```json
+{
+  "message": "Profile updated successfully",
+  "user": {
+    "id": "6a8176aa8e3150a5403a4d51",
+    "uid": "84920481",
+    "name": "Jane Doe",
+    "email": "john@example.com",
+    "avatar": "avatar-03",
+    "xp": 140,
+    "level": 3
+  }
+}
+```
+
+---
+
+### 2.3 Change Password
+Allows an authenticated user to change their password by validating their current password.
+
+- **Method**: `PUT`
+- **Path**: `/api/users/change-password`
+- **Access**: Protected
+- **Request Body**:
+```json
+{
+  "currentPassword": "password123",
+  "newPassword": "newsecretpassword456"
+}
+```
+- **Response (`200 OK`)**:
+```json
+{
+  "message": "Password changed successfully"
+}
+```
+
+---
+
+### 2.4 Get Public Profile by 8-Digit UID (`/:uid`)
+Fetches the public profile, level, streak stats, and badges of any user by their 8-digit numerical `uid`.
+
+- **Method**: `GET`
+- **Path**: `/api/users/:uid`
+- **Access**: Protected
+- **Response (`200 OK`)**:
+```json
+{
+  "profile": {
+    "uid": "84920481",
+    "name": "John Doe",
+    "avatar": "avatar-01",
+    "xp": 140,
+    "level": 3,
+    "progress": {
+      "level": 3,
+      "currentXP": 140,
+      "progressPercentage": 32
+    },
+    "stats": {
+      "totalCompletions": 28,
+      "bestStreak": 7,
+      "unlockedBadgesCount": 3
+    },
+    "badges": [],
+    "memberSince": "2026-08-16T09:00:00.000Z"
   }
 }
 ```
