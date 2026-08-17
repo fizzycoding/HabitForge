@@ -49,24 +49,111 @@ Creates a new user account with avatar selection.
 - **Response (`201 Created`)**:
 ```json
 {
-  "message": "User registered successfully",
+  "message": "Registration successful! Verification email sent.",
   "user": {
     "id": "6a8176aa8e3150a5403a4d51",
+    "uid": "84920481",
     "name": "John Doe",
     "email": "john@example.com",
     "avatar": "avatar-01",
-    "xp": 0,
-    "level": 1,
-    "subscription": {
-      "plan": "free",
-      "status": "active",
-      "startDate": "2026-08-17T06:00:00.000Z"
-    },
-    "badges": [],
-    "createdAt": "2026-08-17T06:00:00.000Z",
-    "updatedAt": "2026-08-17T06:00:00.000Z"
+    "isEmailVerified": false
   },
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6Ik..."
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6Ik...",
+  "verificationToken": "e5b8d23456789abcdef...",
+  "otp": "482910"
+}
+```
+
+---
+
+### 1.2 Verify Email
+Verifies user email using either a 6-digit OTP code or direct token.
+
+- **Method**: `POST`
+- **Path**: `/api/auth/verify-email`
+- **Access**: Public
+- **Request Body**:
+```json
+{
+  "code": "482910" // or "token": "e5b8d23456789abcdef..."
+}
+```
+- **Response (`200 OK`)**:
+```json
+{
+  "message": "Email verified successfully!",
+  "user": {
+    "id": "6a8176aa8e3150a5403a4d51",
+    "email": "john@example.com",
+    "isEmailVerified": true
+  }
+}
+```
+
+---
+
+### 1.3 Resend Email Verification
+Resends email verification code and link.
+
+- **Method**: `POST`
+- **Path**: `/api/auth/resend-verification`
+- **Access**: Public
+- **Request Body**:
+```json
+{
+  "email": "john@example.com"
+}
+```
+- **Response (`200 OK`)**:
+```json
+{
+  "message": "Verification email resent successfully.",
+  "verificationToken": "e5b8d23456789abcdef...",
+  "otp": "482910"
+}
+```
+
+---
+
+### 1.4 Forgot Password
+Sends password reset email via Resend with a secure reset token link.
+
+- **Method**: `POST`
+- **Path**: `/api/auth/forgot-password`
+- **Access**: Public
+- **Request Body**:
+```json
+{
+  "email": "john@example.com"
+}
+```
+- **Response (`200 OK`)**:
+```json
+{
+  "message": "Password reset link sent to your email.",
+  "resetToken": "f7a9d23456789abcdef..."
+}
+```
+
+---
+
+### 1.5 Reset Password
+Resets user password using valid token.
+
+- **Method**: `POST`
+- **Path**: `/api/auth/reset-password`
+- **Access**: Public
+- **Request Body**:
+```json
+{
+  "token": "f7a9d23456789abcdef...",
+  "newPassword": "brandnewpassword456"
+}
+```
+- **Response (`200 OK`)**:
+```json
+{
+  "message": "Password has been reset successfully. You can now log in."
 }
 ```
 

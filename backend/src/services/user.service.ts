@@ -14,6 +14,7 @@ export function formatFullUser(user: InstanceType<typeof User>) {
     name: user.name,
     email: user.email,
     avatar: user.avatar,
+    isEmailVerified: user.isEmailVerified || false,
     xp: user.xp || 0,
     level: user.level || 1,
     progress: getLevelProgress(user.xp || 0),

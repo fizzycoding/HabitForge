@@ -29,6 +29,26 @@ export const loginSchema = z.object({
     .min(1, 'Password is required'),
 });
 
+export const verifyEmailSchema = z.object({
+  token: z.string().optional(),
+  code: z.string().optional(),
+}).refine((data) => data.token || data.code, {
+  message: 'Either token or verification code is required',
+});
+
+export const resendVerificationSchema = z.object({
+  email: z.string().trim().toLowerCase().email('Invalid email address'),
+});
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().toLowerCase().email('Invalid email address'),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, 'Reset token is required'),
+  newPassword: z.string().min(6, 'New password must be at least 6 characters'),
+});
+
 export const updateProfileSchema = z.object({
   name: z
     .string()
@@ -56,6 +76,7 @@ export const authUserSchema = z.object({
   email: z.string().email(),
   name: z.string(),
   avatar: z.string().default('avatar-01'),
+  isEmailVerified: z.boolean().default(false),
   xp: z.number().default(0),
   level: z.number().default(1),
   subscription: z
@@ -78,6 +99,10 @@ export const authUserSchema = z.object({
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
+export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type UpdateSubscriptionInput = z.infer<typeof updateSubscriptionSchema>;
