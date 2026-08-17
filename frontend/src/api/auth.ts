@@ -3,23 +3,17 @@ import type { User } from '../types/index.js';
 
 export const authApi = {
   register: async (data: any) => {
-    const res = await api.post('/auth/register', data);
-    if (res.data.accessToken) {
-      localStorage.setItem('accessToken', res.data.accessToken);
-    }
+    const res = await api.post('/auth/sign-up/email', data);
     return res.data;
   },
 
   login: async (data: any) => {
-    const res = await api.post('/auth/login', data);
-    if (res.data.accessToken) {
-      localStorage.setItem('accessToken', res.data.accessToken);
-    }
+    const res = await api.post('/auth/sign-in/email', data);
     return res.data;
   },
 
   logout: async () => {
-    await api.post('/auth/logout');
+    await api.post('/auth/sign-out');
     localStorage.removeItem('accessToken');
   },
 
@@ -34,7 +28,7 @@ export const authApi = {
   },
 
   changePassword: async (data: { currentPassword: string; newPassword: string }) => {
-    const res = await api.put('/auth/change-password', data);
+    const res = await api.post('/auth/change-password', data);
     return res.data;
   },
 
@@ -44,7 +38,7 @@ export const authApi = {
   },
 
   updateSubscription: async (plan: 'free' | 'monthly' | 'yearly') => {
-    const res = await api.patch('/auth/subscription', { plan });
+    const res = await api.patch('/users/subscription', { plan });
     return res.data;
   },
 };

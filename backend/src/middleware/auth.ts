@@ -1,51 +1,38 @@
 import type { Request, Response, NextFunction } from 'express';
-import { User } from '../models/User.js';
+import { fromNodeHeaders } from 'better-auth/node';
+import { auth } from '../lib/auth.js';
 import { AppError, asyncHandler } from './error.js';
-import { verifyAccessToken } from '../utils/jwt.js';
-import type { AuthUser } from '../schemas/auth.schema.js';
+import type { AuthUser } from '../schemas/user.schema.js';
 
 export interface AuthRequest extends Request {
   user?: AuthUser;
+  session?: any;
 }
 
 export const protect = asyncHandler(async (req: AuthRequest, _res: Response, next: NextFunction) => {
-  const token =
-    req.cookies?.accessToken ||
-    req.cookies?.token ||
-    req.headers.authorization?.replace('Bearer ', '');
+  const session = await auth.api.getSession({
+    headers: fromNodeHeaders(req.headers),
+  });
 
-  if (!token) {
-    throw new AppError('Not authorized, no access token provided', 401);
+  if (!session) {
+    throw new AppError('Not authorized, please log in', 401);
   }
 
-  try {
-    const decoded = verifyAccessToken(token);
-    const user = await User.findById(decoded.id).select('_id uid email name avatar isEmailVerified xp level subscription badges');
-    
-    if (!user) {
-      throw new AppError('User no longer exists', 401);
-    }
-
-    req.user = {
-      id: user._id.toString(),
-      uid: user.uid,
-      email: user.email,
-      name: user.name,
-      avatar: user.avatar,
-      isEmailVerified: user.isEmailVerified || false,
-      xp: user.xp,
-      level: user.level,
-      subscription: user.subscription,
-      badges: user.badges.map((b) => ({
-        badgeId: b.badgeId.toString(),
-        unlockedAt: b.unlockedAt,
-      })),
-    };
-    next();
-  } catch (err: unknown) {
-    if (err instanceof AppError) throw err;
-    throw new AppError('Invalid or expired access token', 401);
-  }
+  const { user } = session;
+  req.session = session.session;
+  req.user = {
+    id: user.id,
+    uid: (user as any).uid || '',
+    email: user.email,
+    name: user.name,
+    avatar: (user as any).avatar || 'avatar-01',
+    isEmailVerified: user.emailVerified || false,
+    xp: (user as any).xp || 0,
+    level: (user as any).level || 1,
+    subscription: (user as any).subscription || { plan: 'free', status: 'active' },
+    badges: (user as any).badges || [],
+  };
+  next();
 });
 
 export function isProUser(user?: AuthUser): boolean {
@@ -60,7 +47,7 @@ export const requirePro = asyncHandler(async (req: AuthRequest, _res: Response, 
   }
 
   if (!isProUser(req.user)) {
-    throw new AppError('Pro subscription required to access this feature', 403);
+    throw new AppError('Pro subscription required for this feature', 403);
   }
 
   next();

@@ -29,13 +29,15 @@ Authorization: Bearer {{accessToken}}
 
 ---
 
-## 1. Authentication Endpoints (`/api/auth`)
+## 1. Authentication Endpoints (`/api/auth` - Powered by BetterAuth 🚀)
 
-### 1.1 Register User
-Creates a new user account with avatar selection.
+BetterAuth handles user sessions, email verification, password reset, and secure cookies out-of-the-box.
+
+### 1.1 Sign Up with Email
+Registers a new user account and sends a verification email.
 
 - **Method**: `POST`
-- **Path**: `/api/auth/register`
+- **Path**: `/api/auth/sign-up/email`
 - **Access**: Public
 - **Request Body**:
 ```json
@@ -43,60 +45,43 @@ Creates a new user account with avatar selection.
   "name": "John Doe",
   "email": "john@example.com",
   "password": "password123",
-  "avatar": "avatar-01" // Options: 'avatar-01', 'avatar-02', 'avatar-03', 'avatar-04', 'avatar-05'
-}
-```
-- **Response (`201 Created`)**:
-```json
-{
-  "message": "Registration successful! Verification email sent.",
-  "user": {
-    "id": "6a8176aa8e3150a5403a4d51",
-    "uid": "84920481",
-    "name": "John Doe",
-    "email": "john@example.com",
-    "avatar": "avatar-01",
-    "isEmailVerified": false
-  },
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6Ik...",
-  "verificationToken": "e5b8d23456789abcdef...",
-  "otp": "482910"
+  "avatar": "avatar-01"
 }
 ```
 
 ---
 
-### 1.2 Verify Email
-Verifies user email using either a 6-digit OTP code or direct token.
+### 1.2 Sign In with Email
+Authenticates user and returns a secure HTTP-only session cookie.
 
 - **Method**: `POST`
+- **Path**: `/api/auth/sign-in/email`
+- **Access**: Public
+- **Request Body**:
+```json
+{
+  "email": "john@example.com",
+  "password": "password123"
+}
+```
+
+---
+
+### 1.3 Verify Email
+Verifies user email using the token sent to their inbox.
+
+- **Method**: `GET` or `POST`
 - **Path**: `/api/auth/verify-email`
 - **Access**: Public
-- **Request Body**:
-```json
-{
-  "code": "482910" // or "token": "e5b8d23456789abcdef..."
-}
-```
-- **Response (`200 OK`)**:
-```json
-{
-  "message": "Email verified successfully!",
-  "user": {
-    "id": "6a8176aa8e3150a5403a4d51",
-    "email": "john@example.com",
-    "isEmailVerified": true
-  }
-}
-```
+- **Query / Body**: `?token=YOUR_VERIFICATION_TOKEN`
 
 ---
 
-### 1.3 Resend Email Verification
-Resends email verification code and link.
+### 1.4 Resend Email Verification
+Resends email verification link to user.
 
 - **Method**: `POST`
-- **Path**: `/api/auth/resend-verification`
+- **Path**: `/api/auth/send-verification-email`
 - **Access**: Public
 - **Request Body**:
 ```json
@@ -104,36 +89,56 @@ Resends email verification code and link.
   "email": "john@example.com"
 }
 ```
-- **Response (`200 OK`)**:
+
+---
+
+### 1.5 Forgot Password
+Sends a password reset link to user's email.
+
+- **Method**: `POST`
+- **Path**: `/api/auth/forget-password`
+- **Access**: Public
+- **Request Body**:
 ```json
 {
-  "message": "Verification email resent successfully.",
-  "verificationToken": "e5b8d23456789abcdef...",
-  "otp": "482910"
+  "email": "john@example.com",
+  "redirectTo": "http://localhost:5173/reset-password"
 }
 ```
 
 ---
 
-### 1.4 Forgot Password
-Sends password reset email via Resend with a secure reset token link.
+### 1.6 Reset Password
+Resets user password using the token sent in the reset email.
 
 - **Method**: `POST`
-- **Path**: `/api/auth/forgot-password`
+- **Path**: `/api/auth/reset-password`
 - **Access**: Public
 - **Request Body**:
 ```json
 {
-  "email": "john@example.com"
+  "token": "YOUR_RESET_TOKEN",
+  "newPassword": "brandnewpassword123"
 }
 ```
-- **Response (`200 OK`)**:
-```json
-{
-  "message": "Password reset link sent to your email.",
-  "resetToken": "f7a9d23456789abcdef..."
-}
-```
+
+---
+
+### 1.7 Get Active Session
+Returns current logged-in user profile & session information.
+
+- **Method**: `GET`
+- **Path**: `/api/auth/get-session`
+- **Access**: Authenticated
+
+---
+
+### 1.8 Sign Out
+Clears user session and revokes authentication cookies.
+
+- **Method**: `POST`
+- **Path**: `/api/auth/sign-out`
+- **Access**: Authenticated
 
 ---
 

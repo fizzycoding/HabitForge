@@ -21,35 +21,6 @@ const userSchema = new Schema(
       lowercase: true,
       trim: true,
     },
-    password: {
-      type: String,
-      required: true,
-      select: false,
-    },
-    isEmailVerified: {
-      type: Boolean,
-      default: false,
-    },
-    emailVerificationToken: {
-      type: String,
-      select: false,
-    },
-    emailVerificationExpires: {
-      type: Date,
-      select: false,
-    },
-    resetPasswordToken: {
-      type: String,
-      select: false,
-    },
-    resetPasswordExpires: {
-      type: Date,
-      select: false,
-    },
-    refreshToken: {
-      type: String,
-      select: false,
-    },
     avatar: {
       type: String,
       enum: ['avatar-01', 'avatar-02', 'avatar-03', 'avatar-04', 'avatar-05'],
