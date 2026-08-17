@@ -130,9 +130,29 @@ Issues a new access token using a valid refresh token.
 
 ---
 
+### 1.4 Change Password
+Allows an authenticated user to change their account password.
+
+- **Method**: `PUT`
+- **Path**: `/api/auth/change-password`
+- **Access**: Protected
+- **Request Body**:
+```json
+{
+  "currentPassword": "password123",
+  "newPassword": "newsecretpassword456"
+}
+```
+- **Response (`200 OK`)**:
+```json
+{
+  "message": "Password changed successfully"
+}
+```
+
 ---
 
-### 1.4 Update Subscription (Dev Mock)
+### 1.5 Update Subscription (Dev Mock)
 Manually updates user subscription plan for development testing.
 
 - **Method**: `PATCH`
@@ -229,29 +249,7 @@ Updates user name and/or avatar.
 
 ---
 
-### 2.3 Change Password
-Allows an authenticated user to change their password by validating their current password.
-
-- **Method**: `PUT`
-- **Path**: `/api/users/change-password`
-- **Access**: Protected
-- **Request Body**:
-```json
-{
-  "currentPassword": "password123",
-  "newPassword": "newsecretpassword456"
-}
-```
-- **Response (`200 OK`)**:
-```json
-{
-  "message": "Password changed successfully"
-}
-```
-
----
-
-### 2.4 Get Public Profile by 8-Digit UID (`/:uid`)
+### 2.3 Get Public Profile by 8-Digit UID (`/:uid`)
 Fetches the public profile, level, streak stats, and badges of any user by their 8-digit numerical `uid`.
 
 - **Method**: `GET`

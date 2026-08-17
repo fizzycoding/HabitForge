@@ -6,6 +6,7 @@ import type { AuthRequest } from '../middleware/auth.js';
 import type {
   RegisterInput,
   LoginInput,
+  ChangePasswordInput,
   UpdateSubscriptionInput,
 } from '../schemas/auth.schema.js';
 import {
@@ -134,6 +135,30 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
   }
   clearAuthCookies(res);
   res.json({ message: 'Logged out successfully' });
+});
+
+// -- Change Password Controller --
+
+export const changePassword = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.id;
+  const { currentPassword, newPassword } = req.body as ChangePasswordInput;
+
+  const user = await User.findById(userId).select('+password');
+  if (!user) {
+    throw new AppError('User not found', 404);
+  }
+
+  const isPasswordMatch = await bcrypt.compare(currentPassword, user.password);
+  if (!isPasswordMatch) {
+    throw new AppError('Current password is incorrect', 400);
+  }
+
+  user.password = await bcrypt.hash(newPassword, 10);
+  await user.save();
+
+  res.json({
+    message: 'Password changed successfully',
+  });
 });
 
 // -- Update Subscription Controller --
