@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient.js';
 import { AuthProvider, useAuth } from './context/AuthContext.js';
+import { CelebrationProvider } from './context/CelebrationContext.js';
 import { Layout } from './components/layout/Layout.js';
 import { Dashboard } from './pages/Dashboard.js';
 import { HabitsPage } from './pages/HabitsPage.js';
@@ -66,7 +67,9 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <AppContent />
+          <CelebrationProvider>
+            <AppContent />
+          </CelebrationProvider>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>

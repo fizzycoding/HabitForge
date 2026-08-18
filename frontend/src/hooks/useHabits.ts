@@ -1,7 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { habitsApi } from '../api/habits.js';
 import { useAuth } from '../context/AuthContext.js';
-import type { Habit } from '../types/index.js';
+import { useCelebration } from '../context/CelebrationContext.js';
+import { playXpSound } from '../utils/audio.js';
+import { triggerConfetti } from '../utils/confetti.js';
 
 export function useHabits(filter: 'all' | 'daily' | 'weekly' | 'archived' = 'all') {
   return useQuery({
@@ -20,6 +22,7 @@ export function useHabits(filter: 'all' | 'daily' | 'weekly' | 'archived' = 'all
 export function useHabitMutations() {
   const queryClient = useQueryClient();
   const { refreshUser } = useAuth();
+  const { triggerLevelUp, triggerBadgeUnlock, triggerXpGain } = useCelebration();
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ['habits'] });
@@ -31,7 +34,12 @@ export function useHabitMutations() {
 
   const createHabit = useMutation({
     mutationFn: (data: any) => habitsApi.create(data),
-    onSuccess: invalidate,
+    onSuccess: (res: any) => {
+      if (res?.newlyUnlockedBadges?.length > 0) {
+        triggerBadgeUnlock(res.newlyUnlockedBadges[0]);
+      }
+      invalidate();
+    },
   });
 
   const updateHabit = useMutation({
@@ -45,48 +53,25 @@ export function useHabitMutations() {
   });
 
   const toggleComplete = useMutation({
-    mutationFn: ({ id, isCompleted }: { id: string; isCompleted: boolean }) =>
-      isCompleted ? habitsApi.uncomplete(id) : habitsApi.complete(id),
+    mutationFn: ({ id }: { id: string; isCompleted?: boolean; habitName?: string }) =>
+      habitsApi.complete(id),
 
-    // ⚡ Optimistic Update: Flips checkbox state in 0ms BEFORE network request completes!
-    onMutate: async ({ id, isCompleted }) => {
-      await queryClient.cancelQueries({ queryKey: ['habits'] });
+    onSuccess: (res: any, variables) => {
+      playXpSound();
+      triggerConfetti();
 
-      const previousHabitsQueries = queryClient.getQueriesData<Habit[]>({ queryKey: ['habits'] });
-
-      queryClient.setQueriesData<Habit[]>({ queryKey: ['habits'] }, (old) => {
-        if (!old) return [];
-        return old.map((habit) => {
-          if (habit.id === id) {
-            const nextState = !isCompleted;
-            const currentStreak = Math.max(0, (habit.currentStreak || 0) + (nextState ? 1 : -1));
-            return {
-              ...habit,
-              isCompletedToday: nextState,
-              currentStreak,
-            };
-          }
-          return habit;
-        });
+      triggerXpGain({
+        xp: res?.xpGained || 20,
+        habitName: variables?.habitName,
+        streak: res?.streak?.currentStreak,
       });
 
-      return { previousHabitsQueries };
-    },
-
-    onError: (_err, _variables, context) => {
-      if (context?.previousHabitsQueries) {
-        context.previousHabitsQueries.forEach(([queryKey, data]) => {
-          queryClient.setQueryData(queryKey, data);
-        });
+      if (res?.isLevelUp) {
+        triggerLevelUp(res.newLevel);
+      } else if (res?.newlyUnlockedBadges?.length > 0) {
+        triggerBadgeUnlock(res.newlyUnlockedBadges[0]);
       }
-    },
-
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['habits'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      queryClient.invalidateQueries({ queryKey: ['analytics'] });
-      queryClient.invalidateQueries({ queryKey: ['badges'] });
-      refreshUser();
+      invalidate();
     },
   });
 

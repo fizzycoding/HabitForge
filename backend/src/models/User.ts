@@ -25,8 +25,7 @@ const userSchema = new Schema(
     },
     avatar: {
       type: String,
-      enum: ['avatar-01', 'avatar-02', 'avatar-03', 'avatar-04', 'avatar-05'],
-      default: 'avatar-01',
+      default: 'avatar-1',
     },
     xp: {
       type: Number,

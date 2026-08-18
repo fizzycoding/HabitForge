@@ -117,13 +117,17 @@ export const Register: React.FC = () => {
                   key={av.id}
                   type="button"
                   onClick={() => setAvatar(av.id)}
-                  className={`flex-1 h-10 rounded-xl border flex items-center justify-center text-xs font-bold transition-all ${
+                  className={`w-12 h-12 rounded-xl border flex items-center justify-center p-1 transition-all overflow-hidden ${
                     avatar === av.id
-                      ? 'border-indigo-500 bg-indigo-600/20 text-indigo-400'
-                      : 'border-slate-800 bg-slate-950 text-slate-500'
+                      ? 'border-indigo-500 bg-indigo-600/20 text-indigo-400 scale-105 shadow-md shadow-indigo-500/20'
+                      : 'border-slate-800 bg-slate-950 text-slate-500 hover:border-slate-700'
                   }`}
                 >
-                  {av.name}
+                  <img
+                    src={av.src}
+                    alt={av.name}
+                    className="w-full h-full object-cover rounded-lg"
+                  />
                 </button>
               ))}
             </div>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { HabitCard } from '../components/habits/HabitCard.js';
 import { CreateHabitModal } from '../components/habits/CreateHabitModal.js';
+import { ConfirmModal } from '../components/common/ConfirmModal.js';
 import { useHabits, useHabitMutations } from '../hooks/useHabits.js';
 import type { Habit } from '../types/index.js';
 
@@ -9,6 +10,7 @@ export const HabitsPage: React.FC = () => {
   const [filter, setFilter] = useState<'all' | 'daily' | 'weekly' | 'archived'>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
+  const [deletingHabitId, setDeletingHabitId] = useState<string | null>(null);
 
   const { data: habits = [], isLoading } = useHabits(filter);
   const { createHabit, updateHabit, deleteHabit, toggleComplete } = useHabitMutations();
@@ -22,13 +24,14 @@ export const HabitsPage: React.FC = () => {
     setEditingHabit(null);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this habit quest?')) return;
-    await deleteHabit.mutateAsync(id);
+  const confirmDelete = async () => {
+    if (!deletingHabitId) return;
+    await deleteHabit.mutateAsync(deletingHabitId);
+    setDeletingHabitId(null);
   };
 
-  const handleToggleComplete = async (id: string, isCompleted: boolean) => {
-    await toggleComplete.mutateAsync({ id, isCompleted });
+  const handleToggleComplete = async (id: string, isCompleted: boolean, habitName?: string) => {
+    await toggleComplete.mutateAsync({ id, isCompleted, habitName });
   };
 
   return (
@@ -82,7 +85,7 @@ export const HabitsPage: React.FC = () => {
                 setEditingHabit(h);
                 setIsModalOpen(true);
               }}
-              onDelete={handleDelete}
+              onDelete={(id) => setDeletingHabitId(id)}
             />
           ))
         )}
@@ -97,6 +100,18 @@ export const HabitsPage: React.FC = () => {
         }}
         onSubmit={handleCreateOrUpdate}
         initialData={editingHabit}
+      />
+
+      {/* Custom Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!deletingHabitId}
+        title="Delete Habit Quest?"
+        description="Are you sure you want to delete this habit quest? This action cannot be undone."
+        confirmText="Delete Habit"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={confirmDelete}
+        onClose={() => setDeletingHabitId(null)}
       />
     </div>
   );

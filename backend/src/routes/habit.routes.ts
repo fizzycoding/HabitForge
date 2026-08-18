@@ -13,7 +13,6 @@ import {
   archiveHabit,
   unarchiveHabit,
   markComplete,
-  undoComplete,
 } from '../controllers/habit.controller.js';
 
 const router = Router();
@@ -32,9 +31,7 @@ router.delete('/:id', deleteHabit);
 router.patch('/:id/archive', archiveHabit);
 router.patch('/:id/unarchive', unarchiveHabit);
 
-// Completion actions
+// Completion action
 router.post('/:id/complete', validate(completeHabitSchema), markComplete);
-router.post('/:id/uncomplete', validate(completeHabitSchema), undoComplete);
-router.delete('/:id/complete', undoComplete);
 
 export default router;

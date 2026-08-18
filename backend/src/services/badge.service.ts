@@ -14,38 +14,38 @@ export interface BadgeSeedData {
 
 export const PREDEFINED_BADGES: BadgeSeedData[] = [
   // Habit Creation Badges
-  { name: 'Habit Starter', description: 'Created your first habit', icon: 'plus-circle', requirementType: 'habits_created', requirementValue: 1 },
-  { name: 'Habit Builder', description: 'Created 3 habits', icon: 'layers', requirementType: 'habits_created', requirementValue: 3 },
-  { name: 'Habit Architect', description: 'Created 5 habits', icon: 'grid', requirementType: 'habits_created', requirementValue: 5 },
-  { name: 'Habit Mastermind', description: 'Created 10 habits', icon: 'cpu', requirementType: 'habits_created', requirementValue: 10 },
+  { name: 'Habit Starter', description: 'Created your first habit', icon: '/badges/habit_starter_badge.png', requirementType: 'habits_created', requirementValue: 1 },
+  { name: 'Habit Builder', description: 'Created 3 habits', icon: '/badges/habit_builder_badge.png', requirementType: 'habits_created', requirementValue: 3 },
+  { name: 'Habit Architect', description: 'Created 5 habits', icon: '/badges/habit_architect_badge.png', requirementType: 'habits_created', requirementValue: 5 },
+  { name: 'Habit Mastermind', description: 'Created 10 habits', icon: '/badges/habit_mastermind_badge.png', requirementType: 'habits_created', requirementValue: 10 },
 
   // Habit Completion Badges
-  { name: 'First Step', description: 'Completed your very first habit', icon: 'footsteps', requirementType: 'total_completions', requirementValue: 1 },
-  { name: 'Getting Started', description: 'Completed habits 5 times', icon: 'check-circle', requirementType: 'total_completions', requirementValue: 5 },
-  { name: 'Double Digits', description: 'Completed habits 10 times', icon: 'check-square', requirementType: 'total_completions', requirementValue: 10 },
-  { name: 'Quarter Century', description: 'Completed habits 25 times', icon: 'award', requirementType: 'total_completions', requirementValue: 25 },
-  { name: 'Half Century', description: 'Completed habits 50 times', icon: 'shield-check', requirementType: 'total_completions', requirementValue: 50 },
-  { name: 'Century Club', description: 'Completed habits 100 times', icon: 'trophy', requirementType: 'total_completions', requirementValue: 100 },
+  { name: 'First Step', description: 'Completed your very first habit', icon: '/badges/first_step_badge.png', requirementType: 'total_completions', requirementValue: 1 },
+  { name: 'Getting Started', description: 'Completed habits 5 times', icon: '/badges/getting_started_badge.png', requirementType: 'total_completions', requirementValue: 5 },
+  { name: 'Double Digits', description: 'Completed habits 10 times', icon: '/badges/double_badge.png', requirementType: 'total_completions', requirementValue: 10 },
+  { name: 'Quarter Century', description: 'Completed habits 25 times', icon: '/badges/quater_century_badge.png', requirementType: 'total_completions', requirementValue: 25 },
+  { name: 'Half Century', description: 'Completed habits 50 times', icon: '/badges/half_century_badge.png', requirementType: 'total_completions', requirementValue: 50 },
+  { name: 'Century Club', description: 'Completed habits 100 times', icon: '/badges/century_club_badge.png', requirementType: 'total_completions', requirementValue: 100 },
 
   // Streak Badges
-  { name: 'On Fire', description: 'Reached a 3-day habit streak', icon: 'flame', requirementType: 'streak', requirementValue: 3 },
-  { name: 'Weekly Warrior', description: 'Reached a 7-day habit streak', icon: 'zap', requirementType: 'streak', requirementValue: 7 },
-  { name: 'Fortnight Fighter', description: 'Reached a 14-day habit streak', icon: 'swords', requirementType: 'streak', requirementValue: 14 },
-  { name: 'Monthly Legend', description: 'Reached a 30-day habit streak', icon: 'star', requirementType: 'streak', requirementValue: 30 },
-  { name: 'Unstoppable', description: 'Reached an epic 100-day streak', icon: 'infinity', requirementType: 'streak', requirementValue: 100 },
+  { name: 'On Fire', description: 'Reached a 3-day habit streak', icon: '/badges/on_fire_badge.png', requirementType: 'streak', requirementValue: 3 },
+  { name: 'Weekly Warrior', description: 'Reached a 7-day habit streak', icon: '/badges/weekly_warrior_badge.png', requirementType: 'streak', requirementValue: 7 },
+  { name: 'Fortnight Fighter', description: 'Reached a 14-day habit streak', icon: '/badges/fortnight_fighter_badge.png', requirementType: 'streak', requirementValue: 14 },
+  { name: 'Monthly Legend', description: 'Reached a 30-day habit streak', icon: '/badges/monthly_legend_badge.png', requirementType: 'streak', requirementValue: 30 },
+  { name: 'Unstoppable', description: 'Reached an epic 100-day streak', icon: '/badges/unstoppable_badge.png', requirementType: 'streak', requirementValue: 100 },
 
   // Level Badges
-  { name: 'Novice Explorer', description: 'Reached Level 2', icon: 'user', requirementType: 'level', requirementValue: 2 },
-  { name: 'Rising Star', description: 'Reached Level 5', icon: 'sparkles', requirementType: 'level', requirementValue: 5 },
-  { name: 'Forge Veteran', description: 'Reached Level 10', icon: 'shield', requirementType: 'level', requirementValue: 10 },
-  { name: 'Grandmaster', description: 'Reached Level 25', icon: 'crown', requirementType: 'level', requirementValue: 25 },
+  { name: 'Novice Explorer', description: 'Reached Level 2', icon: '/badges/novice_explorer_badge.png', requirementType: 'level', requirementValue: 2 },
+  { name: 'Rising Star', description: 'Reached Level 5', icon: '/badges/raising_star_badge.png', requirementType: 'level', requirementValue: 5 },
+  { name: 'Forge Veteran', description: 'Reached Level 10', icon: '/badges/forge_veteran_badge.png', requirementType: 'level', requirementValue: 10 },
+  { name: 'Grandmaster', description: 'Reached Level 25', icon: '/badges/grandmaster_badge.png', requirementType: 'level', requirementValue: 25 },
 ];
 
 export async function ensureBadgesSeeded() {
   for (const badge of PREDEFINED_BADGES) {
     await Badge.findOneAndUpdate(
       { name: badge.name },
-      { $setOnInsert: badge },
+      { $set: badge },
       { upsert: true },
     );
   }

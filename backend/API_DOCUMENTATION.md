@@ -562,31 +562,7 @@ Logs completion for today (or a target date), awards XP, updates streaks, and un
 
 ---
 
-### 2.6 Undo Habit Completion
-Reverts a completed log for a habit.
-
-- **Method**: `POST` or `DELETE`
-- **Path**: `/api/habits/:id/uncomplete` or `DELETE /api/habits/:id/complete`
-- **Access**: Protected
-- **Response (`200 OK`)**:
-```json
-{
-  "message": "Habit completion undone successfully",
-  "streak": {
-    "currentStreak": 4,
-    "maxStreak": 7
-  },
-  "user": {
-    "id": "6a8176aa8e3150a5403a4d51",
-    "xp": 140,
-    "level": 3
-  }
-}
-```
-
----
-
-### 2.7 Archive & Unarchive Habit
+### 2.6 Archive & Unarchive Habit
 Toggles archive status for a habit.
 
 - **Method**: `PATCH`

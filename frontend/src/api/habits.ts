@@ -39,11 +39,6 @@ export const habitsApi = {
     return res.data;
   },
 
-  uncomplete: async (id: string, dateKey?: string) => {
-    const res = await api.post(`/habits/${id}/uncomplete`, { dateKey });
-    return res.data;
-  },
-
   archive: async (id: string) => {
     const res = await api.patch(`/habits/${id}/archive`);
     return res.data;

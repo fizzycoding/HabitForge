@@ -1,25 +1,49 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Shield, ArrowRight } from 'lucide-react';
+import { Shield, ArrowRight, Lock } from 'lucide-react';
 import { Header } from '../components/layout/Header.js';
 import { HabitCard } from '../components/habits/HabitCard.js';
+import { CreateHabitModal } from '../components/habits/CreateHabitModal.js';
+import { ConfirmModal } from '../components/common/ConfirmModal.js';
 import { useHabits, useHabitMutations } from '../hooks/useHabits.js';
 import { useDashboardData } from '../hooks/useDashboard.js';
 import { useBadges } from '../hooks/useBadges.js';
 import { useAuth } from '../context/AuthContext.js';
 import { getLevelTitle } from '../utils/constants.js';
+import { getBadgeImage } from '../utils/getBadgeImage.js';
+import { getAvatarImage } from '../utils/getAvatarImage.js';
+import type { Habit } from '../types/index.js';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const { data: habits = [] } = useHabits('all');
   const { data: badges = [] } = useBadges();
   const { data: dashData } = useDashboardData();
-  const { toggleComplete } = useHabitMutations();
+  const { createHabit, updateHabit, deleteHabit, toggleComplete } = useHabitMutations();
+
+  const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deletingHabitId, setDeletingHabitId] = useState<string | null>(null);
 
   const metrics = dashData?.metrics;
 
-  const handleToggleComplete = async (habitId: string, isCompleted: boolean) => {
-    await toggleComplete.mutateAsync({ id: habitId, isCompleted });
+  const handleToggleComplete = async (habitId: string, isCompleted: boolean, habitName?: string) => {
+    await toggleComplete.mutateAsync({ id: habitId, isCompleted, habitName });
+  };
+
+  const handleCreateOrUpdate = async (data: any) => {
+    if (editingHabit) {
+      await updateHabit.mutateAsync({ id: editingHabit.id, data });
+    } else {
+      await createHabit.mutateAsync(data);
+    }
+    setEditingHabit(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingHabitId) return;
+    await deleteHabit.mutateAsync(deletingHabitId);
+    setDeletingHabitId(null);
   };
 
   const completedCount = habits.filter((h) => h.isCompletedToday).length;
@@ -33,10 +57,12 @@ export const Dashboard: React.FC = () => {
         {/* Level Progression Card */}
         <div className="lg:col-span-2 bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800 rounded-3xl p-6 relative overflow-hidden flex flex-col sm:flex-row items-center gap-6">
           <div className="w-24 h-24 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-600 p-1 shrink-0 shadow-xl shadow-indigo-500/20">
-            <div className="w-full h-full bg-slate-950 rounded-xl flex items-center justify-center">
-              <span className="text-3xl font-extrabold text-indigo-400">
-                {user?.name?.charAt(0).toUpperCase()}
-              </span>
+            <div className="w-full h-full bg-slate-950 rounded-xl flex items-center justify-center overflow-hidden">
+              <img
+                src={getAvatarImage(user?.avatar)}
+                alt={user?.name}
+                className="w-full h-full object-cover rounded-xl"
+              />
             </div>
           </div>
 
@@ -84,14 +110,25 @@ export const Dashboard: React.FC = () => {
             {badges.slice(0, 4).map((badge) => (
               <div
                 key={badge.id}
-                title={badge.name}
-                className={`aspect-square rounded-2xl flex items-center justify-center border transition-all ${
-                  badge.isUnlocked
-                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 shadow-md shadow-amber-500/10'
-                    : 'bg-slate-950/60 border-slate-800 text-slate-600'
-                }`}
+                title={`${badge.name}: ${badge.description}`}
+                className="relative aspect-square flex items-center justify-center p-1"
               >
-                <Shield className="w-6 h-6" />
+                <img
+                  src={getBadgeImage(badge.name, badge.icon)}
+                  alt={badge.name}
+                  className={`w-full h-full object-contain transition-all duration-300 ${
+                    badge.isUnlocked
+                      ? 'drop-shadow-[0_0_10px_rgba(129,140,248,0.45)] hover:scale-110 hover:drop-shadow-[0_0_16px_rgba(168,85,247,0.7)]'
+                      : 'grayscale opacity-40 filter'
+                  }`}
+                />
+                {!badge.isUnlocked && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="p-1 rounded-full bg-slate-950/80 border border-slate-800 shadow-sm">
+                      <Lock className="w-3 h-3 text-slate-400" />
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -120,6 +157,11 @@ export const Dashboard: React.FC = () => {
                   key={habit.id}
                   habit={habit}
                   onToggleComplete={handleToggleComplete}
+                  onEdit={(h) => {
+                    setEditingHabit(h);
+                    setIsModalOpen(true);
+                  }}
+                  onDelete={(id) => setDeletingHabitId(id)}
                 />
               ))}
             </div>
@@ -153,6 +195,29 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Edit Habit Modal */}
+      <CreateHabitModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingHabit(null);
+        }}
+        onSubmit={handleCreateOrUpdate}
+        initialData={editingHabit}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!deletingHabitId}
+        title="Delete Habit Quest?"
+        description="Are you sure you want to delete this habit quest? This action cannot be undone."
+        confirmText="Delete Habit"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={confirmDelete}
+        onClose={() => setDeletingHabitId(null)}
+      />
     </div>
   );
 };

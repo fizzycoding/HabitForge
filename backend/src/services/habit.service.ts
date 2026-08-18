@@ -213,13 +213,14 @@ export async function markComplete(userId: string, habitId: string, targetDateKe
 
   const existingLog = await HabitLog.findOne({ userId, habitId, dateKey });
   if (existingLog) {
-    throw new AppError('Habit already marked as complete for this date', 400);
+    throw new AppError('Habit already marked as complete for today', 400);
   }
 
   const log = await HabitLog.create({
     userId,
     habitId,
     dateKey,
+    xpGranted: true,
     completedAt: new Date(),
   });
 
@@ -234,8 +235,10 @@ export async function markComplete(userId: string, habitId: string, targetDateKe
     throw new AppError('User not found', 404);
   }
 
+  const oldLevel = user.level || 1;
   const newXP = (user.xp || 0) + xpGained;
   const newLevel = calculateLevel(newXP);
+  const isLevelUp = newLevel > oldLevel;
 
   user.xp = newXP;
   user.level = newLevel;
@@ -253,6 +256,9 @@ export async function markComplete(userId: string, habitId: string, targetDateKe
     message: 'Habit marked as complete!',
     log,
     xpGained,
+    isLevelUp,
+    oldLevel,
+    newLevel,
     streak: { currentStreak, maxStreak },
     newlyUnlockedBadges,
     user: {
@@ -261,50 +267,5 @@ export async function markComplete(userId: string, habitId: string, targetDateKe
       level: user.level,
       progress: levelProgress,
     },
-  };
-}
-
-export async function undoComplete(userId: string, habitId: string, targetDateKey?: string) {
-  const habit = await Habit.findOne({ _id: habitId, userId });
-  if (!habit) {
-    throw new AppError('Habit not found', 404);
-  }
-
-  const dateKey = targetDateKey || new Date().toISOString().split('T')[0];
-
-  const deletedLog = await HabitLog.findOneAndDelete({ userId, habitId, dateKey });
-  if (!deletedLog) {
-    throw new AppError('Completion log not found for this date', 404);
-  }
-
-  const remainingLogs = await HabitLog.find({ userId, habitId }).select('dateKey');
-  const dateKeys = remainingLogs.map((l) => l.dateKey);
-  const { currentStreak, maxStreak } = calculateStreak(dateKeys);
-
-  const user = await User.findById(userId);
-  if (user) {
-    const xpDeducted = Math.min(user.xp || 0, calculateXP(0));
-    const newXP = Math.max(0, (user.xp || 0) - xpDeducted);
-    const newLevel = calculateLevel(newXP);
-
-    user.xp = newXP;
-    user.level = newLevel;
-    await user.save();
-  }
-
-  const updatedUser = await User.findById(userId);
-  const levelProgress = updatedUser ? getLevelProgress(updatedUser.xp || 0) : null;
-
-  return {
-    message: 'Habit completion undone successfully',
-    streak: { currentStreak, maxStreak },
-    user: updatedUser
-      ? {
-          id: updatedUser._id.toString(),
-          xp: updatedUser.xp,
-          level: updatedUser.level,
-          progress: levelProgress,
-        }
-      : null,
   };
 }

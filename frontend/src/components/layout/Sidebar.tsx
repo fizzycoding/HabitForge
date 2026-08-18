@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.js';
 import { getLevelTitle } from '../../utils/constants.js';
+import { getAvatarImage } from '../../utils/getAvatarImage.js';
 
 export const Sidebar: React.FC = () => {
   const { user, isPro } = useAuth();
@@ -75,11 +76,13 @@ export const Sidebar: React.FC = () => {
           className="flex items-center gap-3 p-3 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-indigo-500/50 transition-all group mt-4"
         >
           <div className="relative">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 p-0.5">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 p-0.5 shrink-0">
               <div className="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center overflow-hidden">
-                <span className="text-lg font-bold text-indigo-400">
-                  {user.name.charAt(0).toUpperCase()}
-                </span>
+                <img
+                  src={getAvatarImage(user.avatar)}
+                  alt={user.name}
+                  className="w-full h-full object-cover rounded-[10px]"
+                />
               </div>
             </div>
             {isPro && (

@@ -10,7 +10,6 @@ import {
   archiveHabit as archiveHabitService,
   unarchiveHabit as unarchiveHabitService,
   markComplete as markCompleteService,
-  undoComplete as undoCompleteService,
 } from '../services/habit.service.js';
 
 import { asyncHandler } from '../middleware/error.js';
@@ -88,12 +87,4 @@ export const markComplete = asyncHandler(async (req: AuthRequest, res: Response)
   const { dateKey } = (req.body || {}) as CompleteHabitInput;
   const result = await markCompleteService(userId, habitId, dateKey);
   res.status(201).json(result);
-});
-
-export const undoComplete = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const userId = req.user!.id;
-  const habitId = req.params.id as string;
-  const dateKey = (req.body?.dateKey || req.query.dateKey) as string | undefined;
-  const result = await undoCompleteService(userId, habitId, dateKey);
-  res.json(result);
 });

@@ -7,10 +7,12 @@ export const UpgradePage: React.FC = () => {
   const { user, isPro, refreshUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const handleSubscribe = async (plan: 'monthly' | 'yearly') => {
     setLoading(true);
     setError(null);
+    setSuccessMsg(null);
     try {
       const orderData = await paymentApi.createOrder(plan);
 
@@ -29,7 +31,7 @@ export const UpgradePage: React.FC = () => {
             plan,
           });
           await refreshUser();
-          alert('Congratulations! Your Pro membership is now active.');
+          setSuccessMsg('Congratulations! Your Pro membership is now active.');
         },
         prefill: {
           name: user?.name,
@@ -53,8 +55,13 @@ export const UpgradePage: React.FC = () => {
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-extrabold text-white tracking-tight">Upgrade to Pro 👑</h1>
-        <p className="text-sm text-slate-400 mt-1">Unlock unlimited habits and advanced 365-day analytics.</p>
       </div>
+
+      {successMsg && (
+        <div className="mb-6 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-semibold">
+          {successMsg}
+        </div>
+      )}
 
       {error && (
         <div className="mb-6 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm">

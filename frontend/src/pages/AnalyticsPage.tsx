@@ -44,12 +44,10 @@ export const AnalyticsPage: React.FC = () => {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-extrabold text-white tracking-tight">Analytics 📊</h1>
-        <p className="text-sm text-slate-400 mt-1">Track your progress and become better every day.</p>
+        <h1 className="text-2xl font-extrabold text-white tracking-tight">Analytics</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Completion Rate Chart Card */}
         <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6">
           <div className="flex justify-between items-start mb-4">
             <div>

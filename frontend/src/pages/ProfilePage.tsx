@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Edit2, Shield, Flame, CheckCircle, Award, X } from 'lucide-react';
+import { Edit2, Flame, CheckCircle, Award, X } from 'lucide-react';
 import { authApi } from '../api/auth.js';
 import { badgesApi } from '../api/badges.js';
 import { analyticsApi } from '../api/analytics.js';
 import { useAuth } from '../context/AuthContext.js';
 import { AVATARS, getLevelTitle } from '../utils/constants.js';
+import { getBadgeImage } from '../utils/getBadgeImage.js';
+import { getAvatarImage } from '../utils/getAvatarImage.js';
 import type { Badge, DashboardMetrics } from '../types/index.js';
 
 export const ProfilePage: React.FC = () => {
@@ -53,8 +55,7 @@ export const ProfilePage: React.FC = () => {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-extrabold text-white tracking-tight">Profile 👤</h1>
-        <p className="text-sm text-slate-400 mt-1">Your journey, your story.</p>
+        <h1 className="text-2xl font-extrabold text-white tracking-tight">Profile</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -63,10 +64,12 @@ export const ProfilePage: React.FC = () => {
           {/* Avatar Container */}
           <div className="relative mb-4">
             <div className="w-28 h-28 rounded-3xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-amber-500 p-1 shadow-2xl shadow-indigo-500/30">
-              <div className="w-full h-full bg-slate-950 rounded-[20px] flex items-center justify-center">
-                <span className="text-4xl font-extrabold text-indigo-400">
-                  {user?.name?.charAt(0).toUpperCase()}
-                </span>
+              <div className="w-full h-full bg-slate-950 rounded-[20px] flex items-center justify-center overflow-hidden">
+                <img
+                  src={getAvatarImage(user?.avatar)}
+                  alt={user?.name}
+                  className="w-full h-full object-cover rounded-[20px]"
+                />
               </div>
             </div>
             <button
@@ -131,21 +134,27 @@ export const ProfilePage: React.FC = () => {
           {/* Badges Grid */}
           <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6">
             <h3 className="text-base font-bold text-white mb-4">Badges Showcase</h3>
-            <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
-              {badges.slice(0, 12).map((badge) => (
-                <div
-                  key={badge.id}
-                  title={badge.name}
-                  className={`aspect-square rounded-2xl flex items-center justify-center border transition-all ${
-                    badge.isUnlocked
-                      ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 shadow-md shadow-amber-500/10'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-700'
-                  }`}
-                >
-                  <Shield className="w-6 h-6" />
-                </div>
-              ))}
-            </div>
+            {unlockedBadges.length === 0 ? (
+              <div className="p-6 text-center text-xs text-slate-400 bg-slate-950/40 border border-slate-800/80 rounded-2xl">
+                No badges earned yet. Complete habit quests to unlock badges!
+              </div>
+            ) : (
+              <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
+                {unlockedBadges.map((badge) => (
+                  <div
+                    key={badge.id}
+                    title={`${badge.name}: ${badge.description}`}
+                    className="aspect-square flex items-center justify-center p-1"
+                  >
+                    <img
+                      src={getBadgeImage(badge.name, badge.icon)}
+                      alt={badge.name}
+                      className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(129,140,248,0.45)] hover:scale-110 hover:drop-shadow-[0_0_16px_rgba(168,85,247,0.7)] transition-all duration-300"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Recently Unlocked */}
@@ -157,8 +166,12 @@ export const ProfilePage: React.FC = () => {
                   key={badge.id}
                   className="flex items-center gap-4 p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
-                    <Shield className="w-5 h-5" />
+                  <div className="w-12 h-12 flex items-center justify-center shrink-0">
+                    <img
+                      src={getBadgeImage(badge.name, badge.icon)}
+                      alt={badge.name}
+                      className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(129,140,248,0.45)]"
+                    />
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-white">{badge.name}</h4>
@@ -206,13 +219,17 @@ export const ProfilePage: React.FC = () => {
                       key={av.id}
                       type="button"
                       onClick={() => setAvatar(av.id)}
-                      className={`w-12 h-12 rounded-xl border flex items-center justify-center transition-all ${
+                      className={`w-14 h-14 rounded-2xl border flex items-center justify-center p-1 transition-all overflow-hidden ${
                         avatar === av.id
-                          ? 'border-indigo-500 bg-indigo-600/20 text-indigo-400 scale-105'
+                          ? 'border-indigo-500 bg-indigo-600/20 text-indigo-400 scale-105 shadow-lg shadow-indigo-500/30'
                           : 'border-slate-800 bg-slate-950 text-slate-500 hover:border-slate-700'
                       }`}
                     >
-                      <span className="font-bold text-sm">{av.id.slice(-2)}</span>
+                      <img
+                        src={av.src}
+                        alt={av.name}
+                        className="w-full h-full object-cover rounded-xl"
+                      />
                     </button>
                   ))}
                 </div>

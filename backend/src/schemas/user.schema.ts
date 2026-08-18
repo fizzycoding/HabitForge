@@ -7,9 +7,7 @@ export const updateProfileSchema = z.object({
     .min(2, 'Name must be at least 2 characters')
     .max(100, 'Name must not exceed 100 characters')
     .optional(),
-  avatar: z
-    .enum(['avatar-01', 'avatar-02', 'avatar-03', 'avatar-04', 'avatar-05'])
-    .optional(),
+  avatar: z.string().optional(),
 });
 
 export const updateSubscriptionSchema = z.object({
