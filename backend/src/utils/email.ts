@@ -7,18 +7,33 @@ interface SendVerificationEmailOptions {
   to: string;
   name: string;
   url: string;
+  token?: string;
 }
 
 interface SendPasswordResetEmailOptions {
   to: string;
   name: string;
   url: string;
+  token?: string;
+}
+
+function printDevTestingBox(type: string, to: string, url: string, token?: string) {
+  console.log('\n============================================================');
+  console.log(`🧪 [TESTING / DEV MODE] ${type} Details`);
+  console.log(`📧 Recipient Email: ${to}`);
+  if (token) {
+    console.log(`🔑 Verification/OTP Token: ${token}`);
+  }
+  console.log(`🔗 Verification Link (Use this for testing):`);
+  console.log(`   ${url}`);
+  console.log('============================================================\n');
 }
 
 export async function sendVerificationEmail({
   to,
   name,
   url,
+  token,
 }: SendVerificationEmailOptions) {
   const subject = 'Verify your HabitForge Account 🛡️';
   const html = `
@@ -44,17 +59,34 @@ export async function sendVerificationEmail({
     </div>
   `;
 
-  const { data, error } = await resend.emails.send({
-    from: env.EMAIL_FROM || 'HabitForge <onboarding@resend.dev>',
-    to,
-    subject,
-    html,
-  });
+  // Always display testing link in console
+  printDevTestingBox('Email Verification', to, url, token);
 
-  if (error) {
-    console.error('[Resend Error]', error);
-  } else {
-    console.log(`[Resend] Verification email sent: ${data?.id}`);
+  try {
+    const apiKey = env.RESEND_API_KEY || process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      console.log('ℹ️ [Resend Info] RESEND_API_KEY not configured. Skipping email delivery.');
+      return;
+    }
+
+    const { data, error } = await resend.emails.send({
+      from: env.EMAIL_FROM || 'HabitForge <onboarding@resend.dev>',
+      to,
+      subject,
+      html,
+    });
+
+    if (error) {
+      if (error.statusCode === 403 || error.name === 'validation_error') {
+        console.log(`ℹ️ [Resend Info] Cannot send real email to "${to}" on Resend free plan. Use the testing link above!`);
+      } else {
+        console.warn('[Resend Warning]', error.message || error);
+      }
+    } else {
+      console.log(`[Resend] Verification email sent successfully (ID: ${data?.id})`);
+    }
+  } catch (err: any) {
+    console.log(`ℹ️ [Resend Info] Email send skipped (${err.message || err}). Use the testing link above!`);
   }
 }
 
@@ -62,6 +94,7 @@ export async function sendPasswordResetEmail({
   to,
   name,
   url,
+  token,
 }: SendPasswordResetEmailOptions) {
   const subject = 'Reset Your HabitForge Password 🔑';
   const html = `
@@ -87,16 +120,33 @@ export async function sendPasswordResetEmail({
     </div>
   `;
 
-  const { data, error } = await resend.emails.send({
-    from: env.EMAIL_FROM || 'HabitForge <onboarding@resend.dev>',
-    to,
-    subject,
-    html,
-  });
+  // Always display testing link in console
+  printDevTestingBox('Password Reset', to, url, token);
 
-  if (error) {
-    console.error('[Resend Error]', error);
-  } else {
-    console.log(`[Resend] Password reset email sent: ${data?.id}`);
+  try {
+    const apiKey = env.RESEND_API_KEY || process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      console.log('ℹ️ [Resend Info] RESEND_API_KEY not configured. Skipping email delivery.');
+      return;
+    }
+
+    const { data, error } = await resend.emails.send({
+      from: env.EMAIL_FROM || 'HabitForge <onboarding@resend.dev>',
+      to,
+      subject,
+      html,
+    });
+
+    if (error) {
+      if (error.statusCode === 403 || error.name === 'validation_error') {
+        console.log(`ℹ️ [Resend Info] Cannot send real email to "${to}" on Resend free plan. Use the testing link above!`);
+      } else {
+        console.warn('[Resend Warning]', error.message || error);
+      }
+    } else {
+      console.log(`[Resend] Password reset email sent successfully (ID: ${data?.id})`);
+    }
+  } catch (err: any) {
+    console.log(`ℹ️ [Resend Info] Email send skipped (${err.message || err}). Use the testing link above!`);
   }
 }

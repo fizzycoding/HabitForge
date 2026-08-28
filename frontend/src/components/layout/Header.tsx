@@ -15,7 +15,7 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle, bestStreak = 0 
     <header className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-800/60 mb-8">
       <div>
         <h1 className="text-2xl font-extrabold text-white tracking-tight">
-          {title || `Good morning, ${user?.name || 'Adventurer'}!`} ⚔️
+          {title || `Welcome, ${user?.name || 'Adventurer'}!`} ⚔️
         </h1>
         <p className="text-sm text-slate-400 mt-1">
           {subtitle || 'Ready to forge better habits today?'}

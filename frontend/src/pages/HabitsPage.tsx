@@ -36,6 +36,11 @@ export const HabitsPage: React.FC = () => {
 
   return (
     <div>
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-extrabold text-white tracking-tight">Habits</h1>
+      </div>
+
       {/* Control Bar */}
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         {/* Filter Pills */}

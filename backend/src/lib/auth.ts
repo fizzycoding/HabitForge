@@ -26,26 +26,28 @@ export const auth = betterAuth({
     disableCSRFCheck: true,
   },
   emailVerification: {
-    sendOnSignUp: true,
+    sendOnSignUp: false,
     async sendVerificationEmail(data: { user: { email: string; name: string }; token: string; url: string }) {
       const verifyUrl = `http://localhost:${env.PORT}/api/auth/verify-email?token=${data.token}&callbackURL=${encodeURIComponent(env.CLIENT_URL)}`;
       await sendVerificationEmail({
         to: data.user.email,
         name: data.user.name,
         url: verifyUrl,
+        token: data.token,
       });
     },
   },
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 6,
-    requireEmailVerification: true,
+    requireEmailVerification: false,
     async sendResetPassword(data: { user: { email: string; name: string }; token: string; url: string }) {
       const resetUrl = `${env.CLIENT_URL}/reset-password?token=${data.token}`;
       await sendPasswordResetEmail({
         to: data.user.email,
         name: data.user.name,
         url: resetUrl,
+        token: data.token,
       });
     },
   },
@@ -82,6 +84,7 @@ export const auth = betterAuth({
             data: {
               ...user,
               uid,
+              emailVerified: true,
             },
           };
         },

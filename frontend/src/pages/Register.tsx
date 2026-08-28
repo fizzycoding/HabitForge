@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import { MailCheck } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.js';
 import { AVATARS } from '../utils/constants.js';
 
@@ -10,18 +9,22 @@ export const Register: React.FC = () => {
   const [password, setPassword] = useState('');
   const [avatar, setAvatar] = useState('avatar-01');
   const [error, setError] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
+  const { register, login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setSuccessMsg(null);
     setLoading(true);
     try {
       await register({ name, email, password, avatar });
-      setSuccessMsg('Registration successful! Please check your email inbox to verify your account.');
+      try {
+        await login({ email, password });
+      } catch (_loginErr) {
+        // Fallback
+      }
+      navigate('/');
     } catch (err: any) {
       setError(err.message || 'Registration failed');
     } finally {
@@ -29,25 +32,7 @@ export const Register: React.FC = () => {
     }
   };
 
-  if (successMsg) {
-    return (
-      <div className="min-h-screen bg-[#070A12] text-slate-100 flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl text-center">
-          <div className="w-16 h-16 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto mb-4">
-            <MailCheck className="w-8 h-8 text-indigo-400" />
-          </div>
-          <h2 className="text-2xl font-extrabold text-white">Check Your Email</h2>
-          <p className="text-sm text-slate-300 mt-2 mb-6">{successMsg}</p>
-          <NavLink
-            to="/login"
-            className="block w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-sm shadow-lg shadow-indigo-600/30"
-          >
-            Go to Login
-          </NavLink>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="min-h-screen bg-[#070A12] text-slate-100 flex items-center justify-center p-4">

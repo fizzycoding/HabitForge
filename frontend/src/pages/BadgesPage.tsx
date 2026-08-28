@@ -8,6 +8,7 @@ export const BadgesPage: React.FC = () => {
 
   return (
     <div>
+      {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-extrabold text-white tracking-tight">Badges</h1>
       </div>

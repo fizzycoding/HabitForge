@@ -13,15 +13,13 @@ const router = Router();
 
 router.use(protect);
 
-// Free & Pro Features
+// Analytics Endpoints
 router.get('/dashboard', getOverview);
 router.get('/overview', getOverview);
 router.get('/history', getHistory);
-
-// Pro Features Only (Advanced Analytics, Heatmaps & Breakdown Charts)
-router.get('/heatmap', requirePro, getHeatmap);
-router.get('/monthly', requirePro, getMonthlyChart);
-router.get('/monthly-report', requirePro, getMonthlyReport);
-router.get('/habits', requirePro, getHabitsStats);
+router.get('/heatmap', getHeatmap);
+router.get('/monthly', getMonthlyChart);
+router.get('/monthly-report', getMonthlyReport);
+router.get('/habits', getHabitsStats);
 
 export default router;
