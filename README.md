@@ -157,7 +157,8 @@ pnpm dev
 4. Set Environment Variable: `VITE_API_URL` pointing to your deployed backend.
 
 ### Deploying Backend (Render / Railway)
-1. Build Command: `pnpm build`
-2. Start Command: `pnpm start`
-3. Set Environment Variables: `MONGODB_URI`, `PORT`, `CLIENT_URL`, `JWT_ACCESS_SECRET`.
-4. Trigger Post-Deployment Seed: `pnpm seed`.
+1. **Root Directory**: `backend`
+2. **Build Command**: `pnpm install && pnpm build`
+3. **Start Command**: `pnpm start`
+4. **Environment Variables**: `MONGODB_URI`, `JWT_ACCESS_SECRET`, `CLIENT_URL`, `NODE_ENV=production`.
+5. **Post-Deployment Seed**: `cd backend && pnpm seed`
