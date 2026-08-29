@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -29,52 +29,25 @@ import {
   Activity,
   ArrowRight,
 } from 'lucide-react';
-import { analyticsApi } from '../api/analytics.js';
-import { useAuth } from '../context/AuthContext.js';
+import { useAnalyticsData } from '../hooks/useAnalytics.js';
 import { getIcon } from '../utils/getIcon.js';
-import type { DashboardMetrics, HeatmapDay } from '../types/index.js';
+import type { HeatmapDay } from '../types/index.js';
 
 export const AnalyticsPage: React.FC = () => {
-  const { isPro } = useAuth();
-
-  // State
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-  const [history, setHistory] = useState<any[]>([]);
-  const [heatmap, setHeatmap] = useState<HeatmapDay[]>([]);
-  const [monthlyChart, setMonthlyChart] = useState<any[]>([]);
-  const [habitsAnalytics, setHabitsAnalytics] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
   // Filter state
   const [timeRange, setTimeRange] = useState<7 | 30 | 90>(30);
   const [chartMetric, setChartMetric] = useState<'rate' | 'count'>('rate');
   const [habitsSort, setHabitsSort] = useState<'streak' | 'completions' | 'rate'>('streak');
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [dashRes, historyRes, heatmapRes, monthlyRes, habitsRes] = await Promise.all([
-        analyticsApi.getDashboard().catch(() => ({ metrics: null })),
-        analyticsApi.getHistory(timeRange).catch(() => ({ history: [] })),
-        analyticsApi.getHeatmap().catch(() => ({ heatmap: [] })),
-        analyticsApi.getMonthlyChart().catch(() => ({ monthlyData: [] })),
-        analyticsApi.getHabitsAnalytics().catch(() => ({ habits: [] })),
-      ]);
-
-      if (dashRes.metrics) setMetrics(dashRes.metrics);
-      setHistory(historyRes.history || []);
-      setHeatmap(heatmapRes.heatmap || []);
-      setMonthlyChart(monthlyRes.monthlyData || []);
-      setHabitsAnalytics(habitsRes.habits || []);
-    } catch (_e) {
-    } finally {
-      setLoading(false);
-    }
-  }, [timeRange]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  // TanStack React Query Caching & Automatic Revalidation
+  const {
+    metrics,
+    history,
+    heatmap,
+    monthlyChart,
+    habitsAnalytics,
+    isLoading,
+  } = useAnalyticsData(timeRange);
 
   // Ensure full 365-day array for heatmap rendering
   const fullHeatmap = useMemo(() => {
@@ -112,23 +85,44 @@ export const AnalyticsPage: React.FC = () => {
     return days;
   }, [heatmap]);
 
-  // Dynamic month labels calculation for heatmap top axis
-  const monthLabels = useMemo(() => {
-    const labels: { name: string; index: number }[] = [];
+  // Group fullHeatmap into 53 week columns
+  const weeks = useMemo(() => {
+    const cols: HeatmapDay[][] = [];
+    let currentWeek: HeatmapDay[] = [];
+
+    fullHeatmap.forEach((day) => {
+      currentWeek.push(day);
+      if (day.dayOfWeek === 6 || currentWeek.length === 7) {
+        cols.push(currentWeek);
+        currentWeek = [];
+      }
+    });
+    if (currentWeek.length > 0) {
+      cols.push(currentWeek);
+    }
+    return cols;
+  }, [fullHeatmap]);
+
+  // Compute exact column index for each month label
+  const colMonthLabels = useMemo(() => {
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const map = new Map<number, string>();
     let lastMonth = -1;
 
-    fullHeatmap.forEach((day, i) => {
-      const d = new Date(day.date);
-      const m = d.getMonth();
-      if (m !== lastMonth) {
-        labels.push({ name: monthNames[m], index: Math.floor(i / 7) });
-        lastMonth = m;
+    weeks.forEach((week, colIdx) => {
+      for (const day of week) {
+        const d = new Date(day.date);
+        const m = d.getMonth();
+        if (m !== lastMonth) {
+          map.set(colIdx, monthNames[m]);
+          lastMonth = m;
+          break;
+        }
       }
     });
 
-    return labels;
-  }, [fullHeatmap]);
+    return map;
+  }, [weeks]);
 
   // Derived metrics
   const avgCompletionRate = useMemo(() => {
@@ -461,35 +455,38 @@ export const AnalyticsPage: React.FC = () => {
 
         {/* Heatmap Grid with Month & Day Labels */}
         <div className="overflow-x-auto pb-4 pt-2 scrollbar-thin scrollbar-thumb-slate-800">
-          <div className="min-w-max space-y-2">
-            {/* Month Labels Axis */}
-            <div className="flex text-[11px] font-bold text-slate-400 pl-8 space-x-1 select-none">
-              {monthLabels.map((ml, idx) => (
-                <span
-                  key={idx}
-                  style={{ width: `${14 * 4}px` }}
-                  aria-hidden="true"
-                >
-                  {ml.name}
-                </span>
-              ))}
+          <div className="min-w-max">
+            {/* Dynamic Month Labels Header Line */}
+            <div className="h-5 relative mb-1 select-none">
+              {weeks.map((_, colIdx) => {
+                const monthName = colMonthLabels.get(colIdx);
+                return monthName ? (
+                  <span
+                    key={colIdx}
+                    className="absolute text-[11px] font-bold text-slate-400 whitespace-nowrap"
+                    style={{ left: `${32 + colIdx * 18}px` }}
+                  >
+                    {monthName}
+                  </span>
+                ) : null;
+              })}
             </div>
 
-            {/* Grid Container (Day Labels + Heatmap Grid) */}
-            <div className="flex gap-2.5">
-              {/* Day Labels Column */}
-              <div className="grid grid-rows-7 text-[10px] font-bold text-slate-500 justify-between h-[106px] pt-0.5 select-none shrink-0">
-                <span>Sun</span>
-                <span>Mon</span>
-                <span>Tue</span>
-                <span>Wed</span>
-                <span>Thu</span>
-                <span>Fri</span>
-                <span>Sat</span>
+            {/* Grid Container (Left Day Labels + 365 Tiles Grid) */}
+            <div className="flex gap-2">
+              {/* Day Labels Column (Mon, Wed, Fri like GitHub) */}
+              <div className="grid grid-rows-7 text-[10px] font-bold text-slate-500 justify-between h-[122px] py-[1px] select-none shrink-0 pr-1">
+                <span className="h-3.5 leading-none opacity-0">Sun</span>
+                <span className="h-3.5 leading-none">Mon</span>
+                <span className="h-3.5 leading-none opacity-0">Tue</span>
+                <span className="h-3.5 leading-none">Wed</span>
+                <span className="h-3.5 leading-none opacity-0">Thu</span>
+                <span className="h-3.5 leading-none">Fri</span>
+                <span className="h-3.5 leading-none opacity-0">Sat</span>
               </div>
 
               {/* 365 Tiles Grid */}
-              <div className="grid grid-rows-7 grid-flow-col gap-1.5">
+              <div className="grid grid-rows-7 grid-flow-col gap-1">
                 {fullHeatmap.map((day, idx) => (
                   <div
                     key={idx}
