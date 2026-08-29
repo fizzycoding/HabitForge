@@ -26,8 +26,19 @@ export async function seedDemoUser() {
       const db = mongoose.connection.db;
       if (db) {
         await db.collection('user').deleteMany({ email: DEMO_USER_EMAIL });
-        await db.collection('account').deleteMany({ userId: demoUser._id.toString() });
-        await db.collection('session').deleteMany({ userId: demoUser._id.toString() });
+        await db.collection('account').deleteMany({
+          $or: [
+            { accountId: DEMO_USER_EMAIL },
+            { userId: demoUser._id },
+            { userId: demoUser._id.toString() },
+          ],
+        });
+        await db.collection('session').deleteMany({
+          $or: [
+            { userId: demoUser._id },
+            { userId: demoUser._id.toString() },
+          ],
+        });
       }
     }
 
