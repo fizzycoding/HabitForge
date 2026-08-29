@@ -114,8 +114,8 @@ export async function seedDemoUser() {
       createdHabits.push(habit);
     }
 
-    // 6. Generate 90 Days of Logs
-    console.log('Step 6: Generating 90 Days of Logs...');
+    // 6. Generate 90 Days of Dynamic Fluctuation Logs
+    console.log('Step 6: Generating 90 Days of Dynamic Logs...');
     let totalXPAcc = 0;
     const now = new Date();
     const habitLogsToInsert: any[] = [];
@@ -127,15 +127,42 @@ export async function seedDemoUser() {
       const logDate = new Date(now);
       logDate.setDate(logDate.getDate() - dayOffset);
       const dateKey = logDate.toISOString().split('T')[0];
+      const dayOfWeek = logDate.getDay();
 
       for (let hIdx = 0; hIdx < createdHabits.length; hIdx++) {
         const habit = createdHabits[hIdx];
         const habitId = habit._id.toString();
 
-        const isRecent35Days = dayOffset <= 35;
-        const isRestDay = !isRecent35Days && (dayOffset % 7 === (hIdx % 5));
+        let isCompleted = false;
 
-        if (isRecent35Days || !isRestDay) {
+        if (hIdx === 0) {
+          // Water: almost daily except occasional miss
+          isCompleted = (dayOffset % 11 !== 3);
+        } else if (hIdx === 1) {
+          // Meditation: 4-5 day runs
+          isCompleted = (dayOffset % 6 !== 2);
+        } else if (hIdx === 2) {
+          // Read 30 Mins: 3 day runs with gaps
+          isCompleted = (dayOffset % 5 !== 1);
+        } else if (hIdx === 3) {
+          // Gym: Mon, Wed, Fri + occasional Saturday
+          isCompleted = dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 5 || (dayOfWeek === 6 && dayOffset % 2 === 0);
+        } else if (hIdx === 4) {
+          // Code: Weekdays high, weekend lower
+          isCompleted = dayOfWeek >= 1 && dayOfWeek <= 5 ? (dayOffset % 7 !== 0) : (dayOffset % 3 === 0);
+        } else {
+          // Healthy Meal: varies with 2-3 day runs
+          isCompleted = (dayOffset % 4 !== 2);
+        }
+
+        // Guarantee active streaks for today and yesterday for core habits
+        if (dayOffset <= 1) {
+          if (hIdx === 0 || hIdx === 1 || hIdx === 2 || hIdx === 4) {
+            isCompleted = true;
+          }
+        }
+
+        if (isCompleted) {
           const currentStreak = (habitStreakMap.get(habitId) || 0) + 1;
           habitStreakMap.set(habitId, currentStreak);
 
