@@ -15,8 +15,6 @@ import {
   Flame,
   CheckCircle2,
   Zap,
-  Crown,
-  Lock,
   Calendar,
   BarChart3,
   TrendingUp,
@@ -27,7 +25,6 @@ import {
   ArrowUpRight,
   Layers,
   Activity,
-  ArrowRight,
 } from 'lucide-react';
 import { useAnalyticsData } from '../hooks/useAnalytics.js';
 import { getIcon } from '../utils/getIcon.js';
@@ -46,7 +43,6 @@ export const AnalyticsPage: React.FC = () => {
     heatmap,
     monthlyChart,
     habitsAnalytics,
-    isLoading,
   } = useAnalyticsData(timeRange);
 
   // Ensure full 365-day array for heatmap rendering
@@ -127,13 +123,13 @@ export const AnalyticsPage: React.FC = () => {
   // Derived metrics
   const avgCompletionRate = useMemo(() => {
     if (!history.length) return 0;
-    const sum = history.reduce((acc, item) => acc + (item.completionRate || 0), 0);
+    const sum = history.reduce((acc: number, item: any) => acc + (item.completionRate || 0), 0);
     return Math.round(sum / history.length);
   }, [history]);
 
   const totalCompletionsInRange = useMemo(() => {
     if (!history.length) return 0;
-    return history.reduce((acc, item) => acc + (item.completedCount || 0), 0);
+    return history.reduce((acc: number, item: any) => acc + (item.completedCount || 0), 0);
   }, [history]);
 
   const sortedHabits = useMemo(() => {
@@ -639,7 +635,7 @@ export const AnalyticsPage: React.FC = () => {
                       }}
                     />
                     <Bar dataKey="totalCompletions" radius={[6, 6, 0, 0]}>
-                      {monthlyChart.map((entry, index) => (
+                      {monthlyChart.map((_entry: any, index: number) => (
                         <Cell
                           key={`cell-${index}`}
                           fill={index === monthlyChart.length - 1 ? '#A855F7' : '#6366F1'}

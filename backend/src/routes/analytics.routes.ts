@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { protect, requirePro } from '../middleware/auth.js';
+import { protect } from '../middleware/auth.js';
 import {
   getOverview,
   getHeatmap,
