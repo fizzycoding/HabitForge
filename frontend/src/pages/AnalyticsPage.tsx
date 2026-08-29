@@ -21,20 +21,17 @@ import {
   Sparkles,
   Award,
   Target,
-  Trophy,
   ArrowUpRight,
   Layers,
   Activity,
 } from 'lucide-react';
 import { useAnalyticsData } from '../hooks/useAnalytics.js';
-import { getIcon } from '../utils/getIcon.js';
 import type { HeatmapDay } from '../types/index.js';
 
 export const AnalyticsPage: React.FC = () => {
   // Filter state
   const [timeRange, setTimeRange] = useState<7 | 30 | 90>(30);
   const [chartMetric, setChartMetric] = useState<'rate' | 'count'>('rate');
-  const [habitsSort, setHabitsSort] = useState<'streak' | 'completions' | 'rate'>('streak');
 
   // TanStack React Query Caching & Automatic Revalidation
   const {
@@ -42,7 +39,6 @@ export const AnalyticsPage: React.FC = () => {
     history,
     heatmap,
     monthlyChart,
-    habitsAnalytics,
   } = useAnalyticsData(timeRange);
 
   // Ensure full 365-day array for heatmap rendering
@@ -131,17 +127,6 @@ export const AnalyticsPage: React.FC = () => {
     if (!history.length) return 0;
     return history.reduce((acc: number, item: any) => acc + (item.completedCount || 0), 0);
   }, [history]);
-
-  const sortedHabits = useMemo(() => {
-    const list = [...habitsAnalytics];
-    if (habitsSort === 'streak') {
-      return list.sort((a, b) => (b.currentStreak || 0) - (a.currentStreak || 0));
-    }
-    if (habitsSort === 'completions') {
-      return list.sort((a, b) => (b.totalCompletions || 0) - (a.totalCompletions || 0));
-    }
-    return list.sort((a, b) => (b.completionRate30Days || 0) - (a.completionRate30Days || 0));
-  }, [habitsAnalytics, habitsSort]);
 
   const getHeatmapColor = (intensity: number) => {
     switch (intensity) {
@@ -498,156 +483,56 @@ export const AnalyticsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Two Column Section: Habit Breakdown Leaderboard & Monthly Performance */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Column 1: Habit Breakdown Leaderboard */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
-              <h2 className="text-base font-extrabold text-white flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-amber-400" /> Habit Consistency Leaderboard
-              </h2>
-
-              <div className="flex items-center p-1 bg-slate-950 border border-slate-800 rounded-xl text-xs">
-                <button
-                  onClick={() => setHabitsSort('streak')}
-                  className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
-                    habitsSort === 'streak' ? 'bg-indigo-600 text-white' : 'text-slate-400'
-                  }`}
-                >
-                  Streak
-                </button>
-                <button
-                  onClick={() => setHabitsSort('completions')}
-                  className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
-                    habitsSort === 'completions' ? 'bg-indigo-600 text-white' : 'text-slate-400'
-                  }`}
-                >
-                  Completions
-                </button>
-                <button
-                  onClick={() => setHabitsSort('rate')}
-                  className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
-                    habitsSort === 'rate' ? 'bg-indigo-600 text-white' : 'text-slate-400'
-                  }`}
-                >
-                  30D Rate
-                </button>
-              </div>
-            </div>
-
-            {sortedHabits.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-400 bg-slate-950/40 border border-slate-800 rounded-2xl">
-                No active habits analyzed yet. Create habits to view performance leaderboard!
-              </div>
-            ) : (
-              <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
-                {sortedHabits.map((habit) => (
-                  <div
-                    key={habit.id}
-                    className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800/80 hover:border-slate-700 transition-all flex items-center justify-between gap-4"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md"
-                        style={{ backgroundColor: habit.color || '#6366F1' }}
-                      >
-                        {getIcon(habit.icon, { className: 'w-5 h-5' })}
-                      </div>
-                      <div className="min-w-0">
-                        <h4 className="text-sm font-extrabold text-white truncate">
-                          {habit.name}
-                        </h4>
-                        <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
-                          <span className="capitalize">{habit.frequency}</span>
-                          <span>•</span>
-                          <span className="text-indigo-400 font-semibold">
-                            {habit.totalCompletions} completions
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4 shrink-0 text-right">
-                      {/* 30D Rate */}
-                      <div className="hidden sm:block">
-                        <div className="text-xs font-bold text-slate-300">
-                          {habit.completionRate30Days}% <span className="text-[10px] text-slate-500">(30d)</span>
-                        </div>
-                        <div className="w-16 h-1.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800 mt-1">
-                          <div
-                            className="bg-indigo-500 h-full rounded-full"
-                            style={{ width: `${habit.completionRate30Days}%` }}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Current Streak */}
-                      <div className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold">
-                        <Flame className="w-4 h-4 fill-orange-500" />
-                        <span>{habit.currentStreak || 0}d</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+      {/* 12-Month Performance Velocity */}
+      <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl relative overflow-hidden">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-base font-extrabold text-white flex items-center gap-2">
+            <Target className="w-5 h-5 text-purple-400" /> 12-Month Completion Velocity
+          </h2>
         </div>
 
-        {/* Column 2: 12-Month Performance Comparison */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-base font-extrabold text-white flex items-center gap-2">
-                <Target className="w-5 h-5 text-purple-400" /> 12-Month Completion Velocity
-              </h2>
-            </div>
-
-            {monthlyChart.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-400 bg-slate-950/40 border border-slate-800 rounded-2xl">
-                No monthly data accrued yet. Keep completing habit quests!
-              </div>
-            ) : (
-              <div className="h-72 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyChart} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" vertical={false} />
-                    <XAxis dataKey="month" stroke="#64748B" fontSize={11} tickLine={false} />
-                    <YAxis stroke="#64748B" fontSize={11} tickLine={false} />
-                    <Tooltip
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          const data = payload[0].payload;
-                          return (
-                            <div className="bg-slate-950/90 border border-slate-800 p-3 rounded-xl shadow-xl backdrop-blur-md text-xs">
-                              <div className="font-bold text-white mb-1">{data.label}</div>
-                              <div className="text-indigo-400 font-extrabold">
-                                Total Completions: {data.totalCompletions}
-                              </div>
-                              <div className="text-slate-400">
-                                Target Rate: {data.completionRate}%
-                              </div>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
+        {monthlyChart.length === 0 ? (
+          <div className="p-8 text-center text-xs text-slate-400 bg-slate-950/40 border border-slate-800 rounded-2xl">
+            No monthly data accrued yet. Keep completing habit quests!
+          </div>
+        ) : (
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyChart} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" vertical={false} />
+                <XAxis dataKey="month" stroke="#64748B" fontSize={11} tickLine={false} />
+                <YAxis stroke="#64748B" fontSize={11} tickLine={false} />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="bg-slate-950/90 border border-slate-800 p-3 rounded-xl shadow-xl backdrop-blur-md text-xs">
+                          <div className="font-bold text-white mb-1">{data.label}</div>
+                          <div className="text-indigo-400 font-extrabold">
+                            Total Completions: {data.totalCompletions}
+                          </div>
+                          <div className="text-slate-400">
+                            Target Rate: {data.completionRate}%
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar dataKey="totalCompletions" radius={[6, 6, 0, 0]}>
+                  {monthlyChart.map((_entry: any, index: number) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={index === monthlyChart.length - 1 ? '#A855F7' : '#6366F1'}
                     />
-                    <Bar dataKey="totalCompletions" radius={[6, 6, 0, 0]}>
-                      {monthlyChart.map((_entry: any, index: number) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={index === monthlyChart.length - 1 ? '#A855F7' : '#6366F1'}
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
