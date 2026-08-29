@@ -1,13 +1,13 @@
 # ⚡ HabitForge — Gamified Habit Tracking Platform
 
-HabitForge is a full-stack gamified habit tracking application built with React, TypeScript, Express, Mongoose, and Better-Auth. It transforms daily habit building into an RPG-style progression system with level-ups, XP multipliers, active streaks, unlocked badges, and detailed 365-day analytics heatmaps.
+HabitForge is a full-stack gamified habit tracking application built with React, TypeScript, Express, Mongoose, and Better-Auth. It transforms daily habit building into an RPG-style progression system with level-ups, XP multipliers, active streaks, unlocked badges, interactive Recharts velocity graphs, and a 365-day activity heatmap powered by `react-activity-calendar`.
 
 ---
 
 ## 🚀 Quick Start & Live Application
 
 ### Demo User Credentials (Pre-populated 3 Months History)
-The database comes pre-seeded with a **Demo User** account populated with **90 days (3 months)** of habit completion logs, populated charts, active streaks, level 25 progression, and unlocked badges:
+The database comes pre-seeded with a **Demo User** account populated with **90 days (3 months)** of habit completion logs, populated charts, active streaks, level progression, and unlocked badges:
 
 * **Email**: `demo@habitforge.com`
 * **Password**: `demo123456`
@@ -32,7 +32,7 @@ HabitForge/
 │   │   ├── lib/                # Better-Auth & Integration Setup
 │   │   ├── middleware/         # Auth & Validation Middleware
 │   │   ├── models/             # Mongoose Schemas (User, Habit, HabitLog, Badge, Tag)
-│   │   ├── routes/             # API Endpoints (Habits, Analytics, Badges, Users, Seed)
+│   │   ├── routes/             # API Endpoints (Habits, Analytics, Badges, Users)
 │   │   ├── services/           # Business Logic (Analytics, Badges, Habits, Seeding)
 │   │   ├── utils/              # Gamification Engine & Helper Utilities
 │   │   └── seed.ts             # CLI Database Seed Script
@@ -160,4 +160,4 @@ pnpm dev
 1. Build Command: `pnpm build`
 2. Start Command: `pnpm start`
 3. Set Environment Variables: `MONGODB_URI`, `PORT`, `CLIENT_URL`, `JWT_ACCESS_SECRET`.
-4. Trigger Post-Deployment Seed: `pnpm seed` or call `/api/seed/demo-user`.
+4. Trigger Post-Deployment Seed: `pnpm seed`.
