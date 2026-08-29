@@ -29,8 +29,6 @@ POST /api/seed/demo-user
 
 ```
 HabitForge/
-├── utils/
-│   └── gamification.js         # Pure, isolated Gamification Math Engine (XP, Levels, Streaks)
 ├── backend/
 │   ├── src/
 │   │   ├── config/             # DB & Environment Configuration
@@ -40,7 +38,7 @@ HabitForge/
 │   │   ├── models/             # Mongoose Schemas (User, Habit, HabitLog, Badge, Tag)
 │   │   ├── routes/             # API Endpoints (Habits, Analytics, Badges, Users, Seed)
 │   │   ├── services/           # Business Logic (Analytics, Badges, Habits, Seeding)
-│   │   ├── utils/              # Gamification & Helper Utilities
+│   │   ├── utils/              # Gamification Engine & Helper Utilities
 │   │   └── seed.ts             # CLI Database Seed Script
 │   ├── package.json
 │   └── tsconfig.json
@@ -60,7 +58,7 @@ HabitForge/
 ## 🧮 Gamification & Streak Algorithm Documentation
 
 ### 1. Dedicated Gamification Module
-The gamification engine is isolated from API routes and UI components in `/utils/gamification.js` (and mirrored in `backend/src/utils/gamification.ts` & `frontend/src/utils/gamification.ts`). It contains zero external dependencies and handles all math calculations deterministically.
+The gamification engine is isolated from API routes and UI components in `backend/src/utils/gamification.ts` and `frontend/src/utils/gamification.ts`. It contains zero external dependencies and handles all math calculations deterministically.
 
 ### 2. Math & Formulas
 

@@ -1,7 +1,3 @@
-/**
- * HabitForge Gamification Engine - XP, Level, and Streak Mathematics
- * Dedicated utility module for frontend components and rendering logic.
- */
 
 export const BASE_XP_PER_HABIT = 10;
 export const XP_PER_STREAK_DAY = 2;
