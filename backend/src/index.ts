@@ -11,7 +11,6 @@ import badgeRoutes from './routes/badge.routes.js';
 import analyticsRoutes from './routes/analytics.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
 import tagRoutes from './routes/tag.routes.js';
-import seedRoutes from './routes/seed.routes.js';
 import { errorHandler, notFound } from './middleware/error.js';
 
 const app = express();
@@ -50,7 +49,6 @@ app.use('/api/badges', badgeRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/tags', tagRoutes);
-app.use('/api/seed', seedRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

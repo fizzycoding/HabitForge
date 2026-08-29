@@ -13,14 +13,10 @@ The database comes pre-seeded with a **Demo User** account populated with **90 d
 * **Password**: `demo123456`
 
 ### Seeding Test Data
-To re-seed or populate the database locally or in production at any time:
+To re-seed or populate the database locally at any time:
 ```bash
-# Via Backend CLI
 cd backend
 pnpm seed
-
-# Via API Endpoint
-POST /api/seed/demo-user
 ```
 
 ---
