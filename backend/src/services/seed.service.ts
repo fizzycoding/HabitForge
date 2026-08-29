@@ -1,4 +1,3 @@
-import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 import { User } from '../models/User.js';
 import { Habit } from '../models/Habit.js';
@@ -6,7 +5,7 @@ import { HabitLog } from '../models/HabitLog.js';
 import { Tag } from '../models/Tag.js';
 import { ensureBadgesSeeded, checkHabitBadge, checkHabitCompleteBadge, checkStreakBadge, checkLevelBadge } from './badge.service.js';
 import { calculateXP, calculateLevel, calculateStreak } from '../utils/gamification.js';
-import { generateUniqueUID } from '../utils/uid.js';
+import { auth } from '../lib/auth.js';
 
 export const DEMO_USER_EMAIL = 'demo@habitforge.com';
 export const DEMO_USER_PASSWORD = 'demo123456';
@@ -19,68 +18,47 @@ export async function seedDemoUser() {
     console.log('Step 1: Ensuring predefined badges...');
     await ensureBadgesSeeded();
 
-    // 2. Find or create Demo User
-    console.log('Step 2: Finding or creating Demo User...');
+    // 2. Find or create Demo User via Better-Auth
+    console.log('Step 2: Ensuring Demo User in Better-Auth...');
     let demoUser = await User.findOne({ email: DEMO_USER_EMAIL });
 
-    if (!demoUser) {
-      const uid = await generateUniqueUID();
-      demoUser = await User.create({
-        name: 'Demo User',
-        email: DEMO_USER_EMAIL,
-        uid,
-        avatar: 'avatar-01',
-        xp: 0,
-        level: 1,
-        emailVerified: true,
-        subscription: {
-          plan: 'yearly',
-          status: 'active',
-          startDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
-        },
-      });
-
-      const hashedPassword = await bcrypt.hash(DEMO_USER_PASSWORD, 10);
+    if (demoUser) {
       const db = mongoose.connection.db;
       if (db) {
-        const accountCollection = db.collection('account');
-        await accountCollection.updateOne(
-          { userId: demoUser._id.toString(), providerId: 'credential' },
-          {
-            $set: {
-              id: new mongoose.Types.ObjectId().toString(),
-              userId: demoUser._id.toString(),
-              accountId: DEMO_USER_EMAIL,
-              providerId: 'credential',
-              password: hashedPassword,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-          },
-          { upsert: true }
-        );
-      }
-    } else {
-      const hashedPassword = await bcrypt.hash(DEMO_USER_PASSWORD, 10);
-      const db = mongoose.connection.db;
-      if (db) {
-        const accountCollection = db.collection('account');
-        await accountCollection.updateOne(
-          { userId: demoUser._id.toString(), providerId: 'credential' },
-          {
-            $set: {
-              id: new mongoose.Types.ObjectId().toString(),
-              userId: demoUser._id.toString(),
-              accountId: DEMO_USER_EMAIL,
-              providerId: 'credential',
-              password: hashedPassword,
-              updatedAt: new Date(),
-            },
-          },
-          { upsert: true }
-        );
+        await db.collection('user').deleteMany({ email: DEMO_USER_EMAIL });
+        await db.collection('account').deleteMany({ userId: demoUser._id.toString() });
+        await db.collection('session').deleteMany({ userId: demoUser._id.toString() });
       }
     }
+
+    // Register Demo User using Better-Auth API so password hash matches signInEmail 100%
+    try {
+      await auth.api.signUpEmail({
+        body: {
+          name: 'Demo User',
+          email: DEMO_USER_EMAIL,
+          password: DEMO_USER_PASSWORD,
+        },
+      });
+    } catch (authErr) {
+      console.log('Better-Auth signUp notice:', authErr);
+    }
+
+    demoUser = await User.findOne({ email: DEMO_USER_EMAIL });
+    if (!demoUser) {
+      throw new Error('Failed to create Demo User with Better-Auth');
+    }
+
+    // Update demo user attributes
+    await User.findByIdAndUpdate(demoUser._id, {
+      avatar: 'avatar-01',
+      emailVerified: true,
+      subscription: {
+        plan: 'yearly',
+        status: 'active',
+        startDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+      },
+    });
 
     const userId = demoUser._id.toString();
 
@@ -207,9 +185,10 @@ export async function seedDemoUser() {
     await checkStreakBadge(userId, maxStreakAcrossHabits);
     await checkLevelBadge(userId, finalLevel);
 
-    console.log(`✅ Demo User Seeded Successfully!`);
+    console.log(`✅ Demo User Seeded Successfully via Better-Auth!`);
     console.log(`👤 Email: ${DEMO_USER_EMAIL}`);
     console.log(`🔑 Password: ${DEMO_USER_PASSWORD}`);
+    console.log(`🆔 UID: ${demoUser.uid}`);
     console.log(`📊 Habits: ${createdHabits.length}`);
     console.log(`🔥 Total Logs (3 Months): ${habitLogsToInsert.length}`);
     console.log(`⭐ Total XP: ${totalXPAcc} | Level: ${finalLevel}`);
@@ -217,6 +196,7 @@ export async function seedDemoUser() {
     return {
       email: DEMO_USER_EMAIL,
       password: DEMO_USER_PASSWORD,
+      uid: demoUser.uid,
       totalHabits: createdHabits.length,
       totalLogs: habitLogsToInsert.length,
       totalXP: totalXPAcc,
