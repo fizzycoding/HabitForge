@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { ActivityCalendar } from 'react-activity-calendar';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -46,7 +47,6 @@ export const AnalyticsPage: React.FC = () => {
     if (heatmap && heatmap.length >= 300) {
       return heatmap;
     }
-    // Fallback generator for 365 days
     const countMap = new Map<string, number>();
     if (heatmap) {
       heatmap.forEach((h) => countMap.set(h.date, h.count));
@@ -77,44 +77,13 @@ export const AnalyticsPage: React.FC = () => {
     return days;
   }, [heatmap]);
 
-  // Group fullHeatmap into 53 week columns
-  const weeks = useMemo(() => {
-    const cols: HeatmapDay[][] = [];
-    let currentWeek: HeatmapDay[] = [];
-
-    fullHeatmap.forEach((day) => {
-      currentWeek.push(day);
-      if (day.dayOfWeek === 6 || currentWeek.length === 7) {
-        cols.push(currentWeek);
-        currentWeek = [];
-      }
-    });
-    if (currentWeek.length > 0) {
-      cols.push(currentWeek);
-    }
-    return cols;
+  const calendarData = useMemo(() => {
+    return fullHeatmap.map((day) => ({
+      date: day.date,
+      count: day.count,
+      level: Math.min(4, Math.max(0, day.intensity)) as 0 | 1 | 2 | 3 | 4,
+    }));
   }, [fullHeatmap]);
-
-  // Compute exact column index for each month label
-  const colMonthLabels = useMemo(() => {
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const map = new Map<number, string>();
-    let lastMonth = -1;
-
-    weeks.forEach((week, colIdx) => {
-      for (const day of week) {
-        const d = new Date(day.date);
-        const m = d.getMonth();
-        if (m !== lastMonth) {
-          map.set(colIdx, monthNames[m]);
-          lastMonth = m;
-          break;
-        }
-      }
-    });
-
-    return map;
-  }, [weeks]);
 
   // Derived metrics
   const avgCompletionRate = useMemo(() => {
@@ -127,21 +96,6 @@ export const AnalyticsPage: React.FC = () => {
     if (!history.length) return 0;
     return history.reduce((acc: number, item: any) => acc + (item.completedCount || 0), 0);
   }, [history]);
-
-  const getHeatmapColor = (intensity: number) => {
-    switch (intensity) {
-      case 1:
-        return 'bg-emerald-950/90 border-emerald-800/80 shadow-[0_0_6px_rgba(16,185,129,0.2)]';
-      case 2:
-        return 'bg-emerald-700 border-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]';
-      case 3:
-        return 'bg-emerald-500 border-emerald-400 shadow-[0_0_14px_rgba(16,185,129,0.6)]';
-      case 4:
-        return 'bg-emerald-300 border-white shadow-[0_0_18px_rgba(52,211,153,0.9)] scale-105';
-      default:
-        return 'bg-slate-950 border-slate-800/70 hover:border-slate-700';
-    }
-  };
 
   return (
     <div className="space-y-8 pb-12">
@@ -409,7 +363,7 @@ export const AnalyticsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* GitHub-style 365-Day Activity Heatmap */}
+      {/* 365-Day Activity Heatmap (Powered by react-activity-calendar) */}
       <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl relative overflow-hidden">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <div>
@@ -417,69 +371,26 @@ export const AnalyticsPage: React.FC = () => {
               <Sparkles className="w-5 h-5 text-emerald-400" /> 365-Day Activity Heatmap
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
-              Your annual consistency matrix mapped day by day
+              Interactive annual habit consistency matrix
             </p>
-          </div>
-
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
-            <span>Less</span>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-sm bg-slate-950 border border-slate-800" />
-              <div className="w-3 h-3 rounded-sm bg-emerald-950 border border-emerald-800" />
-              <div className="w-3 h-3 rounded-sm bg-emerald-700 border border-emerald-500" />
-              <div className="w-3 h-3 rounded-sm bg-emerald-500 border border-emerald-400" />
-              <div className="w-3 h-3 rounded-sm bg-emerald-300 border border-white shadow-sm" />
-            </div>
-            <span>More</span>
           </div>
         </div>
 
-        {/* Heatmap Grid with Month & Day Labels */}
-        <div className="overflow-x-auto pb-4 pt-2 scrollbar-thin scrollbar-thumb-slate-800">
-          <div className="min-w-max">
-            {/* Dynamic Month Labels Header Line */}
-            <div className="h-5 relative mb-1 select-none">
-              {weeks.map((_, colIdx) => {
-                const monthName = colMonthLabels.get(colIdx);
-                return monthName ? (
-                  <span
-                    key={colIdx}
-                    className="absolute text-[11px] font-bold text-slate-400 whitespace-nowrap"
-                    style={{ left: `${32 + colIdx * 18}px` }}
-                  >
-                    {monthName}
-                  </span>
-                ) : null;
-              })}
-            </div>
-
-            {/* Grid Container (Left Day Labels + 365 Tiles Grid) */}
-            <div className="flex gap-2">
-              {/* Day Labels Column (Mon, Wed, Fri like GitHub) */}
-              <div className="grid grid-rows-7 text-[10px] font-bold text-slate-500 justify-between h-[122px] py-[1px] select-none shrink-0 pr-1">
-                <span className="h-3.5 leading-none opacity-0">Sun</span>
-                <span className="h-3.5 leading-none">Mon</span>
-                <span className="h-3.5 leading-none opacity-0">Tue</span>
-                <span className="h-3.5 leading-none">Wed</span>
-                <span className="h-3.5 leading-none opacity-0">Thu</span>
-                <span className="h-3.5 leading-none">Fri</span>
-                <span className="h-3.5 leading-none opacity-0">Sat</span>
-              </div>
-
-              {/* 365 Tiles Grid */}
-              <div className="grid grid-rows-7 grid-flow-col gap-1">
-                {fullHeatmap.map((day, idx) => (
-                  <div
-                    key={idx}
-                    title={`${day.date}: ${day.count} completion(s)`}
-                    className={`w-3.5 h-3.5 rounded-sm border transition-all hover:scale-125 hover:z-20 cursor-pointer ${getHeatmapColor(
-                      day.intensity,
-                    )}`}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
+        <div className="flex justify-center overflow-x-auto pb-2 pt-2 scrollbar-thin scrollbar-thumb-slate-800">
+          <ActivityCalendar
+            data={calendarData}
+            theme={{
+              dark: ['#090d16', '#064e3b', '#047857', '#10b981', '#34d399'],
+            }}
+            colorScheme="dark"
+            blockSize={13}
+            blockMargin={4}
+            blockRadius={3}
+            fontSize={12}
+            labels={{
+              totalCount: '{{count}} habit completions in the last year',
+            }}
+          />
         </div>
       </div>
 
