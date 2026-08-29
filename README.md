@@ -156,7 +156,7 @@ pnpm dev
 3. Output Directory: `dist`
 4. Set Environment Variable: `VITE_API_URL` pointing to your deployed backend.
 
-### Deploying Backend (Render / Railway)
+### Deploying Backend (Render)
 1. **Root Directory**: `backend`
 2. **Build Command**: `pnpm install && pnpm build`
 3. **Start Command**: `pnpm start`
