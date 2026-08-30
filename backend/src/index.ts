@@ -5,6 +5,7 @@ import { toNodeHandler } from 'better-auth/node';
 import { env } from './config/env.js';
 import { connectDB } from './config/db.js';
 import { auth } from './lib/auth.js';
+import { seedDemoUser } from './services/seed.service.js';
 import userRoutes from './routes/user.routes.js';
 import habitRoutes from './routes/habit.routes.js';
 import badgeRoutes from './routes/badge.routes.js';
@@ -35,6 +36,12 @@ app.use(
 );
 
 await connectDB();
+
+try {
+  await seedDemoUser();
+} catch (seedErr) {
+  console.warn('Boot demo seed notice:', seedErr);
+}
 
 app.all('/api/auth/{*path}', toNodeHandler(auth.handler));
 
