@@ -15,9 +15,21 @@ import { errorHandler, notFound } from './middleware/error.js';
 
 const app = express();
 
+const allowedOrigins = [
+  env.CLIENT_URL,
+  'https://habit-forge-eta.vercel.app',
+  'http://localhost:5173',
+];
+
 app.use(
   cors({
-    origin: env.CLIENT_URL,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin) || allowedOrigins.some((o) => origin.startsWith(o))) {
+        callback(null, true);
+      } else {
+        callback(null, true);
+      }
+    },
     credentials: true,
   }),
 );

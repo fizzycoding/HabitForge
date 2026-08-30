@@ -9,7 +9,7 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string().min(16, 'JWT_REFRESH_SECRET must be at least 16 characters'),
   ACCESS_TOKEN_EXPIRES_IN: z.string().default('15m'),
   REFRESH_TOKEN_EXPIRES_IN: z.string().default('7d'),
-  CLIENT_URL: z.string().url().default('http://localhost:5173'),
+  CLIENT_URL: z.string().url().default('https://habit-forge-eta.vercel.app'),
   SERVER_URL: z.string().default('https://habitforge-ldjc.onrender.com'),
   RAZORPAY_KEY_ID: z.string(),
   RAZORPAY_KEY_SECRET: z.string(),
@@ -20,6 +20,7 @@ const envSchema = z.object({
 
 const parsed = envSchema.safeParse({
   ...process.env,
+  CLIENT_URL: process.env.CLIENT_URL || 'https://habit-forge-eta.vercel.app',
   SERVER_URL: process.env.SERVER_URL || process.env.BETTER_AUTH_URL || 'https://habitforge-ldjc.onrender.com',
   JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || 'dev-only-access-secret-min-16-chars',
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || (process.env.JWT_SECRET ? `${process.env.JWT_SECRET}-refresh` : 'dev-only-refresh-secret-min-16-chars'),
