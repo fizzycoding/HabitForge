@@ -10,8 +10,17 @@ export interface AuthRequest extends Request {
 }
 
 export const protect = asyncHandler(async (req: AuthRequest, _res: Response, next: NextFunction) => {
+  const nodeHeaders = fromNodeHeaders(req.headers);
+  const headers = new Headers(nodeHeaders);
+
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    headers.set('cookie', `better-auth.session_token=${token}`);
+  }
+
   const session = await auth.api.getSession({
-    headers: fromNodeHeaders(req.headers),
+    headers,
   });
 
   if (!session) {

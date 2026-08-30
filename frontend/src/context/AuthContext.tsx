@@ -21,9 +21,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUser = useCallback(async () => {
     try {
-      const sessionRes = await authClient.getSession();
-      if (sessionRes.data?.user) {
-        const res = await authApi.getMe();
+      const res = await authApi.getMe();
+      if (res?.user) {
         setUser(res.user);
       } else {
         setUser(null);
@@ -49,6 +48,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error(res.error.message || 'Login failed');
     }
 
+    if (res.data?.token) {
+      localStorage.setItem('better-auth.session_token', res.data.token);
+    }
+
     await fetchUser();
   };
 
@@ -64,11 +67,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error(res.error.message || 'Registration failed');
     }
 
+    if (res.data?.token) {
+      localStorage.setItem('better-auth.session_token', res.data.token);
+    }
+
+    await fetchUser();
     return res.data;
   };
 
   const logout = async () => {
-    await authClient.signOut();
+    try {
+      await authClient.signOut();
+    } catch (_) {}
+    localStorage.removeItem('better-auth.session_token');
+    localStorage.removeItem('accessToken');
     setUser(null);
   };
 
