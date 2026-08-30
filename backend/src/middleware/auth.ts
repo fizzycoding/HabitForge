@@ -16,7 +16,13 @@ export const protect = asyncHandler(async (req: AuthRequest, _res: Response, nex
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.split(' ')[1];
-    headers.set('cookie', `better-auth.session_token=${token}`);
+    if (token && token !== 'undefined' && token !== 'null') {
+      const existingCookie = headers.get('cookie') || '';
+      headers.set(
+        'cookie',
+        existingCookie ? `${existingCookie}; better-auth.session_token=${token}` : `better-auth.session_token=${token}`,
+      );
+    }
   }
 
   const session = await auth.api.getSession({

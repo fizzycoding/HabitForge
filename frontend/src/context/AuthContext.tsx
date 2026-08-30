@@ -21,13 +21,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUser = useCallback(async () => {
     try {
-      const res = await authApi.getMe();
-      if (res?.user) {
-        setUser(res.user);
-      } else {
-        setUser(null);
-      }
-    } catch (_err) {
+      try {
+        const sessionRes = await authClient.getSession();
+        if (sessionRes?.data?.user) {
+          const token = (sessionRes.data as any)?.token || (sessionRes.data as any)?.session?.token;
+          if (token && token !== 'undefined') {
+            localStorage.setItem('better-auth.session_token', token);
+          }
+          const res = await authApi.getMe();
+          if (res?.user) {
+            setUser(res.user);
+            return;
+          }
+        }
+      } catch (_err) {}
+
+      try {
+        const res = await authApi.getMe();
+        if (res?.user) {
+          setUser(res.user);
+          return;
+        }
+      } catch (_err) {}
+
       setUser(null);
     } finally {
       setLoading(false);
@@ -48,8 +64,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error(res.error.message || 'Login failed');
     }
 
-    if (res.data?.token) {
-      localStorage.setItem('better-auth.session_token', res.data.token);
+    const token = res.data?.token || (res.data as any)?.session?.token;
+    if (token && token !== 'undefined') {
+      localStorage.setItem('better-auth.session_token', token);
     }
 
     await fetchUser();
@@ -67,8 +84,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error(res.error.message || 'Registration failed');
     }
 
-    if (res.data?.token) {
-      localStorage.setItem('better-auth.session_token', res.data.token);
+    const token = res.data?.token || (res.data as any)?.session?.token;
+    if (token && token !== 'undefined') {
+      localStorage.setItem('better-auth.session_token', token);
     }
 
     await fetchUser();
