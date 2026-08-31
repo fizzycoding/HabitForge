@@ -39,13 +39,12 @@ export const AnalyticsPage: React.FC = () => {
   const [timeRange, setTimeRange] = useState<7 | 30 | 90>(30);
   const [chartMetric, setChartMetric] = useState<'rate' | 'count'>('rate');
 
-  // TanStack React Query Caching & Automatic Revalidation
   const {
     metrics,
     history,
     heatmap,
     monthlyChart,
-  } = useAnalyticsData(timeRange);
+  } = useAnalyticsData(timeRange, isPro);
 
   // Ensure full 365-day array for heatmap rendering
   const fullHeatmap = useMemo(() => {
