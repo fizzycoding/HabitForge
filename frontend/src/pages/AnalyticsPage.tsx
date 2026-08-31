@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ActivityCalendar } from 'react-activity-calendar';
 import {
   ResponsiveContainer,
@@ -25,12 +26,16 @@ import {
   ArrowUpRight,
   Layers,
   Activity,
+  Lock,
+  Crown,
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext.js';
 import { useAnalyticsData } from '../hooks/useAnalytics.js';
 import type { HeatmapDay } from '../types/index.js';
 
 export const AnalyticsPage: React.FC = () => {
-  // Filter state
+  const { isPro } = useAuth();
+  const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState<7 | 30 | 90>(30);
   const [chartMetric, setChartMetric] = useState<'rate' | 'count'>('rate');
 
@@ -363,12 +368,13 @@ export const AnalyticsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 365-Day Activity Heatmap (Powered by react-activity-calendar) */}
+      {/* 365-Day Activity Heatmap — Pro Only */}
       <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl relative overflow-hidden">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <div>
             <h2 className="text-lg font-extrabold text-white flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-emerald-400" /> 365-Day Activity Heatmap
+              {!isPro && <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full"><Crown className="w-3 h-3" />PRO</span>}
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
               Interactive annual habit consistency matrix
@@ -376,72 +382,119 @@ export const AnalyticsPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex justify-center overflow-x-auto pb-2 pt-2 scrollbar-thin scrollbar-thumb-slate-800">
-          <ActivityCalendar
-            data={calendarData}
-            theme={{
-              dark: ['#090d16', '#064e3b', '#047857', '#10b981', '#34d399'],
-            }}
-            colorScheme="dark"
-            blockSize={13}
-            blockMargin={4}
-            blockRadius={3}
-            fontSize={12}
-            labels={{
-              totalCount: '{{count}} habit completions in the last year',
-            }}
-          />
-        </div>
+        {isPro ? (
+          <div className="flex justify-center overflow-x-auto pb-2 pt-2 scrollbar-thin scrollbar-thumb-slate-800">
+            <ActivityCalendar
+              data={calendarData}
+              theme={{
+                dark: ['#090d16', '#064e3b', '#047857', '#10b981', '#34d399'],
+              }}
+              colorScheme="dark"
+              blockSize={13}
+              blockMargin={4}
+              blockRadius={3}
+              fontSize={12}
+              labels={{
+                totalCount: '{{count}} habit completions in the last year',
+              }}
+            />
+          </div>
+        ) : (
+          <div className="relative">
+            <div className="blur-sm opacity-40 pointer-events-none select-none">
+              <ActivityCalendar
+                data={calendarData}
+                theme={{ dark: ['#090d16', '#064e3b', '#047857', '#10b981', '#34d399'] }}
+                colorScheme="dark"
+                blockSize={13}
+                blockMargin={4}
+                blockRadius={3}
+                fontSize={12}
+              />
+            </div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+              <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                <Lock className="w-7 h-7 text-amber-400" />
+              </div>
+              <p className="text-sm font-bold text-white">Upgrade to Pro to unlock the full heatmap</p>
+              <button onClick={() => navigate('/pricing')} className="px-5 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:brightness-110 transition-all">
+                Upgrade Now
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* 12-Month Performance Velocity */}
+      {/* 12-Month Performance Velocity — Pro Only */}
       <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl relative overflow-hidden">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-base font-extrabold text-white flex items-center gap-2">
             <Target className="w-5 h-5 text-purple-400" /> 12-Month Completion Velocity
+            {!isPro && <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full"><Crown className="w-3 h-3" />PRO</span>}
           </h2>
         </div>
 
-        {monthlyChart.length === 0 ? (
-          <div className="p-8 text-center text-xs text-slate-400 bg-slate-950/40 border border-slate-800 rounded-2xl">
-            No monthly data accrued yet. Keep completing habit quests!
-          </div>
+        {isPro ? (
+          monthlyChart.length === 0 ? (
+            <div className="p-8 text-center text-xs text-slate-400 bg-slate-950/40 border border-slate-800 rounded-2xl">
+              No monthly data accrued yet. Keep completing habit quests!
+            </div>
+          ) : (
+            <div className="h-72 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyChart} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" vertical={false} />
+                  <XAxis dataKey="month" stroke="#64748B" fontSize={11} tickLine={false} />
+                  <YAxis stroke="#64748B" fontSize={11} tickLine={false} />
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="bg-slate-950/90 border border-slate-800 p-3 rounded-xl shadow-xl backdrop-blur-md text-xs">
+                            <div className="font-bold text-white mb-1">{data.label}</div>
+                            <div className="text-indigo-400 font-extrabold">
+                              Total Completions: {data.totalCompletions}
+                            </div>
+                            <div className="text-slate-400">
+                              Target Rate: {data.completionRate}%
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Bar dataKey="totalCompletions" radius={[6, 6, 0, 0]}>
+                    {monthlyChart.map((_entry: any, index: number) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={index === monthlyChart.length - 1 ? '#A855F7' : '#6366F1'}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )
         ) : (
-          <div className="h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyChart} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" vertical={false} />
-                <XAxis dataKey="month" stroke="#64748B" fontSize={11} tickLine={false} />
-                <YAxis stroke="#64748B" fontSize={11} tickLine={false} />
-                <Tooltip
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      const data = payload[0].payload;
-                      return (
-                        <div className="bg-slate-950/90 border border-slate-800 p-3 rounded-xl shadow-xl backdrop-blur-md text-xs">
-                          <div className="font-bold text-white mb-1">{data.label}</div>
-                          <div className="text-indigo-400 font-extrabold">
-                            Total Completions: {data.totalCompletions}
-                          </div>
-                          <div className="text-slate-400">
-                            Target Rate: {data.completionRate}%
-                          </div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Bar dataKey="totalCompletions" radius={[6, 6, 0, 0]}>
-                  {monthlyChart.map((_entry: any, index: number) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={index === monthlyChart.length - 1 ? '#A855F7' : '#6366F1'}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="relative">
+            <div className="blur-sm opacity-40 pointer-events-none select-none h-72 flex items-center justify-center">
+              <div className="flex gap-2 items-end">
+                {[40, 65, 55, 80, 70, 90, 60, 75, 85, 50, 95, 88].map((h, i) => (
+                  <div key={i} className="w-8 rounded-t-md bg-indigo-600/60" style={{ height: `${h * 2.5}px` }} />
+                ))}
+              </div>
+            </div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+              <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                <Lock className="w-7 h-7 text-amber-400" />
+              </div>
+              <p className="text-sm font-bold text-white">Upgrade to Pro to unlock monthly velocity</p>
+              <button onClick={() => navigate('/pricing')} className="px-5 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:brightness-110 transition-all">
+                Upgrade Now
+              </button>
+            </div>
           </div>
         )}
       </div>
