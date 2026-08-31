@@ -6,6 +6,9 @@ HabitForge is a full-stack gamified habit tracking application built with React,
 
 ## 🚀 Quick Start & Live Application
 
+* **Live Web App (Frontend)**: [https://habit-forge-eta.vercel.app](https://habit-forge-eta.vercel.app)
+* **Live API Backend**: [https://habitforge-ldjc.onrender.com](https://habitforge-ldjc.onrender.com)
+
 ### Demo User Credentials (Pre-populated 3 Months History)
 The database comes pre-seeded with a **Demo User** account populated with **90 days (3 months)** of habit completion logs, populated charts, active streaks, level progression, and unlocked badges:
 
