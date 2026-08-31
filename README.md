@@ -2,7 +2,7 @@
 
 HabitForge is a full-stack gamified habit tracking application built with React, TypeScript, Express, Mongoose, and Better-Auth. It transforms daily habit building into an RPG-style progression system with level-ups, XP multipliers, active streaks, unlocked badges, interactive Recharts velocity graphs, and a 365-day activity heatmap powered by `react-activity-calendar`.
 
----
+--- 
 
 ## 🚀 Quick Start & Live Application
 
