@@ -5,12 +5,11 @@ import { useCelebration } from '../context/CelebrationContext.js';
 import { playXpSound } from '../utils/audio.js';
 import { triggerConfetti } from '../utils/confetti.js';
 
-export function useHabits(filter: 'all' | 'daily' | 'weekly' | 'archived' = 'all') {
+export function useHabits(filter: 'all' | 'daily' | 'weekly' = 'all') {
   return useQuery({
     queryKey: ['habits', filter],
     queryFn: async () => {
-      const statusParam = filter === 'archived' ? 'archived' : 'all';
-      const res = await habitsApi.getAll(statusParam);
+      const res = await habitsApi.getAll('all');
       let filtered = res.habits;
       if (filter === 'daily') filtered = res.habits.filter((h) => h.frequency === 'daily');
       if (filter === 'weekly') filtered = res.habits.filter((h) => h.frequency === 'weekly');
