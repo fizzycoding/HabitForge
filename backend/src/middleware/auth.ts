@@ -10,9 +10,9 @@ export interface AuthRequest extends Request {
 }
 
 export const protect = asyncHandler(async (req: AuthRequest, _res: Response, next: NextFunction) => {
-  const session = await auth.api.getSession({
-    headers: fromNodeHeaders(req.headers),
-  });
+  const headers = new Headers(fromNodeHeaders(req.headers));
+
+  const session = await auth.api.getSession({ headers });
 
   if (!session) {
     throw new AppError('Not authorized, please log in', 401);

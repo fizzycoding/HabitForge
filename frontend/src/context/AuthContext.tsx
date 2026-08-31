@@ -13,7 +13,14 @@ interface AuthContextType {
   isPro: boolean;
 }
 
+const TOKEN_KEY = 'better-auth.session_token';
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+function storeToken(data: any) {
+  const token = data?.token || data?.session?.token;
+  if (token) localStorage.setItem(TOKEN_KEY, token);
+}
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -21,14 +28,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUser = useCallback(async () => {
     try {
-      const sessionRes = await authClient.getSession();
-      if (sessionRes.data?.user) {
-        const res = await authApi.getMe();
-        setUser(res.user);
-      } else {
+      const token = localStorage.getItem(TOKEN_KEY);
+      if (!token) {
         setUser(null);
+        return;
       }
-    } catch (_err) {
+
+      const res = await authApi.getMe();
+      setUser(res?.user ?? null);
+    } catch {
       setUser(null);
     } finally {
       setLoading(false);
@@ -45,10 +53,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       password: credentials.password,
     });
 
-    if (res.error) {
-      throw new Error(res.error.message || 'Login failed');
-    }
+    if (res.error) throw new Error(res.error.message || 'Login failed');
 
+    storeToken(res.data);
     await fetchUser();
   };
 
@@ -60,15 +67,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       image: data.avatar || 'avatar-01',
     } as any);
 
-    if (res.error) {
-      throw new Error(res.error.message || 'Registration failed');
-    }
+    if (res.error) throw new Error(res.error.message || 'Registration failed');
 
+    storeToken(res.data);
+    await fetchUser();
     return res.data;
   };
 
   const logout = async () => {
-    await authClient.signOut();
+    try { await authClient.signOut(); } catch {}
+    localStorage.removeItem(TOKEN_KEY);
     setUser(null);
   };
 
@@ -79,17 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        login,
-        register,
-        logout,
-        refreshUser: fetchUser,
-        isPro,
-      }}
-    >
+    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser: fetchUser, isPro }}>
       {children}
     </AuthContext.Provider>
   );
@@ -97,8 +95,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };

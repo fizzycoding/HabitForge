@@ -1,4 +1,5 @@
 import { betterAuth } from 'better-auth';
+import { bearer } from 'better-auth/plugins';
 import { mongodbAdapter } from 'better-auth/adapters/mongodb';
 import mongoose from 'mongoose';
 import { env } from '../config/env.js';
@@ -19,16 +20,21 @@ const dbProxy = new Proxy({} as any, {
 export const auth = betterAuth({
   database: mongodbAdapter(dbProxy),
   secret: env.JWT_ACCESS_SECRET,
-  baseURL: `http://localhost:${env.PORT}`,
+  baseURL: process.env.BETTER_AUTH_URL || env.SERVER_URL || 'https://habitforge-ldjc.onrender.com',
   basePath: '/api/auth',
-  trustedOrigins: [env.CLIENT_URL],
+  plugins: [bearer()],
+  trustedOrigins: [
+    env.CLIENT_URL,
+    'https://habit-forge-eta.vercel.app',
+  ],
   advanced: {
     disableCSRFCheck: true,
   },
   emailVerification: {
     sendOnSignUp: false,
     async sendVerificationEmail(data: { user: { email: string; name: string }; token: string; url: string }) {
-      const verifyUrl = `http://localhost:${env.PORT}/api/auth/verify-email?token=${data.token}&callbackURL=${encodeURIComponent(env.CLIENT_URL)}`;
+      const serverBase = process.env.BETTER_AUTH_URL || env.SERVER_URL || 'https://habitforge-ldjc.onrender.com';
+      const verifyUrl = `${serverBase}/api/auth/verify-email?token=${data.token}&callbackURL=${encodeURIComponent(env.CLIENT_URL)}`;
       await sendVerificationEmail({
         to: data.user.email,
         name: data.user.name,

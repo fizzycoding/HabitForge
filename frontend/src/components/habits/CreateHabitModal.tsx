@@ -222,7 +222,7 @@ export const CreateHabitModal: React.FC<CreateHabitModalProps> = ({
               </span>
             </div>
 
-            <div className="grid grid-cols-6 gap-2 bg-[#070A12] p-3 rounded-2xl border border-slate-800/80">
+            <div className="grid grid-cols-5 sm:grid-cols-6 gap-2 bg-[#070A12] p-3 rounded-2xl border border-slate-800/80">
               {AVAILABLE_ICONS.map(({ name: iconKey, label: iconLabel, Icon: IconComponent }) => {
                 const isSelected = icon === iconKey;
                 return (

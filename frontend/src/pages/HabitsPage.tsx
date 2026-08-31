@@ -7,7 +7,7 @@ import { useHabits, useHabitMutations } from '../hooks/useHabits.js';
 import type { Habit } from '../types/index.js';
 
 export const HabitsPage: React.FC = () => {
-  const [filter, setFilter] = useState<'all' | 'daily' | 'weekly' | 'archived'>('all');
+  const [filter, setFilter] = useState<'all' | 'daily' | 'weekly'>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [deletingHabitId, setDeletingHabitId] = useState<string | null>(null);
@@ -45,7 +45,7 @@ export const HabitsPage: React.FC = () => {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         {/* Filter Pills */}
         <div className="flex items-center gap-2 p-1.5 bg-slate-900 border border-slate-800 rounded-2xl">
-          {(['all', 'daily', 'weekly', 'archived'] as const).map((tab) => (
+          {(['all', 'daily', 'weekly'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setFilter(tab)}

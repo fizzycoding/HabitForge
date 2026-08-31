@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ActivityCalendar } from 'react-activity-calendar';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -15,46 +17,40 @@ import {
   Flame,
   CheckCircle2,
   Zap,
-  Crown,
-  Lock,
   Calendar,
   BarChart3,
   TrendingUp,
   Sparkles,
   Award,
   Target,
-  Trophy,
   ArrowUpRight,
   Layers,
   Activity,
-  ArrowRight,
+  Lock,
+  Crown,
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext.js';
 import { useAnalyticsData } from '../hooks/useAnalytics.js';
-import { getIcon } from '../utils/getIcon.js';
 import type { HeatmapDay } from '../types/index.js';
 
 export const AnalyticsPage: React.FC = () => {
-  // Filter state
+  const { isPro } = useAuth();
+  const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState<7 | 30 | 90>(30);
   const [chartMetric, setChartMetric] = useState<'rate' | 'count'>('rate');
-  const [habitsSort, setHabitsSort] = useState<'streak' | 'completions' | 'rate'>('streak');
 
-  // TanStack React Query Caching & Automatic Revalidation
   const {
     metrics,
     history,
     heatmap,
     monthlyChart,
-    habitsAnalytics,
-    isLoading,
-  } = useAnalyticsData(timeRange);
+  } = useAnalyticsData(timeRange, isPro);
 
   // Ensure full 365-day array for heatmap rendering
   const fullHeatmap = useMemo(() => {
     if (heatmap && heatmap.length >= 300) {
       return heatmap;
     }
-    // Fallback generator for 365 days
     const countMap = new Map<string, number>();
     if (heatmap) {
       heatmap.forEach((h) => countMap.set(h.date, h.count));
@@ -85,82 +81,25 @@ export const AnalyticsPage: React.FC = () => {
     return days;
   }, [heatmap]);
 
-  // Group fullHeatmap into 53 week columns
-  const weeks = useMemo(() => {
-    const cols: HeatmapDay[][] = [];
-    let currentWeek: HeatmapDay[] = [];
-
-    fullHeatmap.forEach((day) => {
-      currentWeek.push(day);
-      if (day.dayOfWeek === 6 || currentWeek.length === 7) {
-        cols.push(currentWeek);
-        currentWeek = [];
-      }
-    });
-    if (currentWeek.length > 0) {
-      cols.push(currentWeek);
-    }
-    return cols;
+  const calendarData = useMemo(() => {
+    return fullHeatmap.map((day) => ({
+      date: day.date,
+      count: day.count,
+      level: Math.min(4, Math.max(0, day.intensity)) as 0 | 1 | 2 | 3 | 4,
+    }));
   }, [fullHeatmap]);
-
-  // Compute exact column index for each month label
-  const colMonthLabels = useMemo(() => {
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const map = new Map<number, string>();
-    let lastMonth = -1;
-
-    weeks.forEach((week, colIdx) => {
-      for (const day of week) {
-        const d = new Date(day.date);
-        const m = d.getMonth();
-        if (m !== lastMonth) {
-          map.set(colIdx, monthNames[m]);
-          lastMonth = m;
-          break;
-        }
-      }
-    });
-
-    return map;
-  }, [weeks]);
 
   // Derived metrics
   const avgCompletionRate = useMemo(() => {
     if (!history.length) return 0;
-    const sum = history.reduce((acc, item) => acc + (item.completionRate || 0), 0);
+    const sum = history.reduce((acc: number, item: any) => acc + (item.completionRate || 0), 0);
     return Math.round(sum / history.length);
   }, [history]);
 
   const totalCompletionsInRange = useMemo(() => {
     if (!history.length) return 0;
-    return history.reduce((acc, item) => acc + (item.completedCount || 0), 0);
+    return history.reduce((acc: number, item: any) => acc + (item.completedCount || 0), 0);
   }, [history]);
-
-  const sortedHabits = useMemo(() => {
-    const list = [...habitsAnalytics];
-    if (habitsSort === 'streak') {
-      return list.sort((a, b) => (b.currentStreak || 0) - (a.currentStreak || 0));
-    }
-    if (habitsSort === 'completions') {
-      return list.sort((a, b) => (b.totalCompletions || 0) - (a.totalCompletions || 0));
-    }
-    return list.sort((a, b) => (b.completionRate30Days || 0) - (a.completionRate30Days || 0));
-  }, [habitsAnalytics, habitsSort]);
-
-  const getHeatmapColor = (intensity: number) => {
-    switch (intensity) {
-      case 1:
-        return 'bg-emerald-950/90 border-emerald-800/80 shadow-[0_0_6px_rgba(16,185,129,0.2)]';
-      case 2:
-        return 'bg-emerald-700 border-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]';
-      case 3:
-        return 'bg-emerald-500 border-emerald-400 shadow-[0_0_14px_rgba(16,185,129,0.6)]';
-      case 4:
-        return 'bg-emerald-300 border-white shadow-[0_0_18px_rgba(52,211,153,0.9)] scale-105';
-      default:
-        return 'bg-slate-950 border-slate-800/70 hover:border-slate-700';
-    }
-  };
 
   return (
     <div className="space-y-8 pb-12">
@@ -428,230 +367,135 @@ export const AnalyticsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* GitHub-style 365-Day Activity Heatmap */}
+      {/* 365-Day Activity Heatmap — Pro Only */}
       <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl relative overflow-hidden">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <div>
             <h2 className="text-lg font-extrabold text-white flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-emerald-400" /> 365-Day Activity Heatmap
+              {!isPro && <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full"><Crown className="w-3 h-3" />PRO</span>}
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
-              Your annual consistency matrix mapped day by day
+              Interactive annual habit consistency matrix
             </p>
           </div>
-
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
-            <span>Less</span>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-sm bg-slate-950 border border-slate-800" />
-              <div className="w-3 h-3 rounded-sm bg-emerald-950 border border-emerald-800" />
-              <div className="w-3 h-3 rounded-sm bg-emerald-700 border border-emerald-500" />
-              <div className="w-3 h-3 rounded-sm bg-emerald-500 border border-emerald-400" />
-              <div className="w-3 h-3 rounded-sm bg-emerald-300 border border-white shadow-sm" />
-            </div>
-            <span>More</span>
-          </div>
         </div>
 
-        {/* Heatmap Grid with Month & Day Labels */}
-        <div className="overflow-x-auto pb-4 pt-2 scrollbar-thin scrollbar-thumb-slate-800">
-          <div className="min-w-max">
-            {/* Dynamic Month Labels Header Line */}
-            <div className="h-5 relative mb-1 select-none">
-              {weeks.map((_, colIdx) => {
-                const monthName = colMonthLabels.get(colIdx);
-                return monthName ? (
-                  <span
-                    key={colIdx}
-                    className="absolute text-[11px] font-bold text-slate-400 whitespace-nowrap"
-                    style={{ left: `${32 + colIdx * 18}px` }}
-                  >
-                    {monthName}
-                  </span>
-                ) : null;
-              })}
+        {isPro ? (
+          <div className="flex justify-center overflow-x-auto pb-2 pt-2 scrollbar-thin scrollbar-thumb-slate-800">
+            <ActivityCalendar
+              data={calendarData}
+              theme={{
+                dark: ['#090d16', '#064e3b', '#047857', '#10b981', '#34d399'],
+              }}
+              colorScheme="dark"
+              blockSize={13}
+              blockMargin={4}
+              blockRadius={3}
+              fontSize={12}
+              labels={{
+                totalCount: '{{count}} habit completions in the last year',
+              }}
+            />
+          </div>
+        ) : (
+          <div className="relative">
+            <div className="blur-sm opacity-40 pointer-events-none select-none">
+              <ActivityCalendar
+                data={calendarData}
+                theme={{ dark: ['#090d16', '#064e3b', '#047857', '#10b981', '#34d399'] }}
+                colorScheme="dark"
+                blockSize={13}
+                blockMargin={4}
+                blockRadius={3}
+                fontSize={12}
+              />
             </div>
-
-            {/* Grid Container (Left Day Labels + 365 Tiles Grid) */}
-            <div className="flex gap-2">
-              {/* Day Labels Column (Mon, Wed, Fri like GitHub) */}
-              <div className="grid grid-rows-7 text-[10px] font-bold text-slate-500 justify-between h-[122px] py-[1px] select-none shrink-0 pr-1">
-                <span className="h-3.5 leading-none opacity-0">Sun</span>
-                <span className="h-3.5 leading-none">Mon</span>
-                <span className="h-3.5 leading-none opacity-0">Tue</span>
-                <span className="h-3.5 leading-none">Wed</span>
-                <span className="h-3.5 leading-none opacity-0">Thu</span>
-                <span className="h-3.5 leading-none">Fri</span>
-                <span className="h-3.5 leading-none opacity-0">Sat</span>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+              <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                <Lock className="w-7 h-7 text-amber-400" />
               </div>
-
-              {/* 365 Tiles Grid */}
-              <div className="grid grid-rows-7 grid-flow-col gap-1">
-                {fullHeatmap.map((day, idx) => (
-                  <div
-                    key={idx}
-                    title={`${day.date}: ${day.count} completion(s)`}
-                    className={`w-3.5 h-3.5 rounded-sm border transition-all hover:scale-125 hover:z-20 cursor-pointer ${getHeatmapColor(
-                      day.intensity,
-                    )}`}
-                  />
-                ))}
-              </div>
+              <p className="text-sm font-bold text-white">Upgrade to Pro to unlock the full heatmap</p>
+              <button onClick={() => navigate('/pricing')} className="px-5 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:brightness-110 transition-all">
+                Upgrade Now
+              </button>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Two Column Section: Habit Breakdown Leaderboard & Monthly Performance */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Column 1: Habit Breakdown Leaderboard */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
-              <h2 className="text-base font-extrabold text-white flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-amber-400" /> Habit Consistency Leaderboard
-              </h2>
+      {/* 12-Month Performance Velocity — Pro Only */}
+      <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl relative overflow-hidden">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-base font-extrabold text-white flex items-center gap-2">
+            <Target className="w-5 h-5 text-purple-400" /> 12-Month Completion Velocity
+            {!isPro && <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full"><Crown className="w-3 h-3" />PRO</span>}
+          </h2>
+        </div>
 
-              <div className="flex items-center p-1 bg-slate-950 border border-slate-800 rounded-xl text-xs">
-                <button
-                  onClick={() => setHabitsSort('streak')}
-                  className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
-                    habitsSort === 'streak' ? 'bg-indigo-600 text-white' : 'text-slate-400'
-                  }`}
-                >
-                  Streak
-                </button>
-                <button
-                  onClick={() => setHabitsSort('completions')}
-                  className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
-                    habitsSort === 'completions' ? 'bg-indigo-600 text-white' : 'text-slate-400'
-                  }`}
-                >
-                  Completions
-                </button>
-                <button
-                  onClick={() => setHabitsSort('rate')}
-                  className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
-                    habitsSort === 'rate' ? 'bg-indigo-600 text-white' : 'text-slate-400'
-                  }`}
-                >
-                  30D Rate
-                </button>
-              </div>
+        {isPro ? (
+          monthlyChart.length === 0 ? (
+            <div className="p-8 text-center text-xs text-slate-400 bg-slate-950/40 border border-slate-800 rounded-2xl">
+              No monthly data accrued yet. Keep completing habit quests!
             </div>
-
-            {sortedHabits.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-400 bg-slate-950/40 border border-slate-800 rounded-2xl">
-                No active habits analyzed yet. Create habits to view performance leaderboard!
-              </div>
-            ) : (
-              <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
-                {sortedHabits.map((habit) => (
-                  <div
-                    key={habit.id}
-                    className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800/80 hover:border-slate-700 transition-all flex items-center justify-between gap-4"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md"
-                        style={{ backgroundColor: habit.color || '#6366F1' }}
-                      >
-                        {getIcon(habit.icon, { className: 'w-5 h-5' })}
-                      </div>
-                      <div className="min-w-0">
-                        <h4 className="text-sm font-extrabold text-white truncate">
-                          {habit.name}
-                        </h4>
-                        <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
-                          <span className="capitalize">{habit.frequency}</span>
-                          <span>•</span>
-                          <span className="text-indigo-400 font-semibold">
-                            {habit.totalCompletions} completions
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4 shrink-0 text-right">
-                      {/* 30D Rate */}
-                      <div className="hidden sm:block">
-                        <div className="text-xs font-bold text-slate-300">
-                          {habit.completionRate30Days}% <span className="text-[10px] text-slate-500">(30d)</span>
-                        </div>
-                        <div className="w-16 h-1.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800 mt-1">
-                          <div
-                            className="bg-indigo-500 h-full rounded-full"
-                            style={{ width: `${habit.completionRate30Days}%` }}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Current Streak */}
-                      <div className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold">
-                        <Flame className="w-4 h-4 fill-orange-500" />
-                        <span>{habit.currentStreak || 0}d</span>
-                      </div>
-                    </div>
-                  </div>
+          ) : (
+            <div className="h-72 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyChart} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" vertical={false} />
+                  <XAxis dataKey="month" stroke="#64748B" fontSize={11} tickLine={false} />
+                  <YAxis stroke="#64748B" fontSize={11} tickLine={false} />
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="bg-slate-950/90 border border-slate-800 p-3 rounded-xl shadow-xl backdrop-blur-md text-xs">
+                            <div className="font-bold text-white mb-1">{data.label}</div>
+                            <div className="text-indigo-400 font-extrabold">
+                              Total Completions: {data.totalCompletions}
+                            </div>
+                            <div className="text-slate-400">
+                              Target Rate: {data.completionRate}%
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Bar dataKey="totalCompletions" radius={[6, 6, 0, 0]}>
+                    {monthlyChart.map((_entry: any, index: number) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={index === monthlyChart.length - 1 ? '#A855F7' : '#6366F1'}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )
+        ) : (
+          <div className="relative">
+            <div className="blur-sm opacity-40 pointer-events-none select-none h-72 flex items-center justify-center">
+              <div className="flex gap-2 items-end">
+                {[40, 65, 55, 80, 70, 90, 60, 75, 85, 50, 95, 88].map((h, i) => (
+                  <div key={i} className="w-8 rounded-t-md bg-indigo-600/60" style={{ height: `${h * 2.5}px` }} />
                 ))}
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Column 2: 12-Month Performance Comparison */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-base font-extrabold text-white flex items-center gap-2">
-                <Target className="w-5 h-5 text-purple-400" /> 12-Month Completion Velocity
-              </h2>
             </div>
-
-            {monthlyChart.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-400 bg-slate-950/40 border border-slate-800 rounded-2xl">
-                No monthly data accrued yet. Keep completing habit quests!
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+              <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                <Lock className="w-7 h-7 text-amber-400" />
               </div>
-            ) : (
-              <div className="h-72 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyChart} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" vertical={false} />
-                    <XAxis dataKey="month" stroke="#64748B" fontSize={11} tickLine={false} />
-                    <YAxis stroke="#64748B" fontSize={11} tickLine={false} />
-                    <Tooltip
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          const data = payload[0].payload;
-                          return (
-                            <div className="bg-slate-950/90 border border-slate-800 p-3 rounded-xl shadow-xl backdrop-blur-md text-xs">
-                              <div className="font-bold text-white mb-1">{data.label}</div>
-                              <div className="text-indigo-400 font-extrabold">
-                                Total Completions: {data.totalCompletions}
-                              </div>
-                              <div className="text-slate-400">
-                                Target Rate: {data.completionRate}%
-                              </div>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Bar dataKey="totalCompletions" radius={[6, 6, 0, 0]}>
-                      {monthlyChart.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={index === monthlyChart.length - 1 ? '#A855F7' : '#6366F1'}
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
+              <p className="text-sm font-bold text-white">Upgrade to Pro to unlock monthly velocity</p>
+              <button onClick={() => navigate('/pricing')} className="px-5 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:brightness-110 transition-all">
+                Upgrade Now
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import { toNodeHandler } from 'better-auth/node';
 import { env } from './config/env.js';
 import { connectDB } from './config/db.js';
 import { auth } from './lib/auth.js';
+import { seedDemoUser } from './services/seed.service.js';
 import userRoutes from './routes/user.routes.js';
 import habitRoutes from './routes/habit.routes.js';
 import badgeRoutes from './routes/badge.routes.js';
@@ -15,14 +16,32 @@ import { errorHandler, notFound } from './middleware/error.js';
 
 const app = express();
 
+const allowedOrigins = [
+  env.CLIENT_URL,
+  'https://habit-forge-eta.vercel.app',
+  'http://localhost:5173',
+];
+
 app.use(
   cors({
-    origin: env.CLIENT_URL,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin) || allowedOrigins.some((o) => origin.startsWith(o))) {
+        callback(null, true);
+      } else {
+        callback(null, true);
+      }
+    },
     credentials: true,
   }),
 );
 
 await connectDB();
+
+try {
+  await seedDemoUser();
+} catch (seedErr) {
+  console.warn('Boot demo seed notice:', seedErr);
+}
 
 app.all('/api/auth/{*path}', toNodeHandler(auth.handler));
 

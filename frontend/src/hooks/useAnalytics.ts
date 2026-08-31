@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { analyticsApi } from '../api/analytics.js';
 
-export function useAnalyticsData(days: number = 30) {
+export function useAnalyticsData(days: number = 30, isPro: boolean = false) {
   const dashboardQuery = useQuery({
     queryKey: ['analytics', 'dashboard'],
     queryFn: () => analyticsApi.getDashboard(),
@@ -17,12 +17,14 @@ export function useAnalyticsData(days: number = 30) {
   const heatmapQuery = useQuery({
     queryKey: ['analytics', 'heatmap'],
     queryFn: () => analyticsApi.getHeatmap().catch(() => ({ totalCompletions: 0, heatmap: [] })),
+    enabled: isPro,
     staleTime: 1000 * 60 * 5,
   });
 
   const monthlyChartQuery = useQuery({
     queryKey: ['analytics', 'monthlyChart'],
     queryFn: () => analyticsApi.getMonthlyChart().catch(() => ({ monthlyData: [] })),
+    enabled: isPro,
     staleTime: 1000 * 60 * 5,
   });
 
@@ -41,8 +43,8 @@ export function useAnalyticsData(days: number = 30) {
     isLoading:
       dashboardQuery.isLoading ||
       historyQuery.isLoading ||
-      heatmapQuery.isLoading ||
-      monthlyChartQuery.isLoading ||
+      (isPro && heatmapQuery.isLoading) ||
+      (isPro && monthlyChartQuery.isLoading) ||
       habitsAnalyticsQuery.isLoading,
   };
 }
