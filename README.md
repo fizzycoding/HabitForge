@@ -9,8 +9,8 @@ HabitForge is a full-stack gamified habit tracking application built with React,
 ### Demo User Credentials (Pre-populated 3 Months History)
 The database comes pre-seeded with a **Demo User** account populated with **90 days (3 months)** of habit completion logs, populated charts, active streaks, level progression, and unlocked badges:
 
-* **Email**: `demo@habitforge.com`
-* **Password**: `demo123456`
+* **Email**: `demo@test.com`
+* **Password**: `demo123`
 
 ### Seeding Test Data
 To re-seed or populate the database locally at any time:
