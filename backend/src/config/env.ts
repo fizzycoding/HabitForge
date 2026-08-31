@@ -10,7 +10,7 @@ const envSchema = z.object({
   ACCESS_TOKEN_EXPIRES_IN: z.string().default('15m'),
   REFRESH_TOKEN_EXPIRES_IN: z.string().default('7d'),
   CLIENT_URL: z.string().url().default('https://habit-forge-eta.vercel.app'),
-  SERVER_URL: z.string().default('https://habitforge-ldjc.onrender.com'),
+  SERVER_URL: z.string().default('https://habitforge-ldjc.onrender.com'), 
   RAZORPAY_KEY_ID: z.string(),
   RAZORPAY_KEY_SECRET: z.string(),
   RAZORPAY_WEBHOOK_SECRET: z.string().optional().default(''),

@@ -1,4 +1,5 @@
 import { betterAuth } from 'better-auth';
+import { bearer } from 'better-auth/plugins';
 import { mongodbAdapter } from 'better-auth/adapters/mongodb';
 import mongoose from 'mongoose';
 import { env } from '../config/env.js';
@@ -21,10 +22,10 @@ export const auth = betterAuth({
   secret: env.JWT_ACCESS_SECRET,
   baseURL: process.env.BETTER_AUTH_URL || env.SERVER_URL || 'https://habitforge-ldjc.onrender.com',
   basePath: '/api/auth',
+  plugins: [bearer()],
   trustedOrigins: [
     env.CLIENT_URL,
     'https://habit-forge-eta.vercel.app',
-    'http://localhost:5173',
   ],
   advanced: {
     disableCSRFCheck: true,
