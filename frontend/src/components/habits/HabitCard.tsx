@@ -32,26 +32,26 @@ export const HabitCard: React.FC<HabitCardProps> = ({
 
   return (
     <div
-      className={`group flex items-center justify-between p-4 rounded-2xl transition-all border ${
+      className={`group flex flex-col sm:flex-row items-start sm:items-center justify-between p-3.5 sm:p-4 gap-3 rounded-2xl transition-all border ${
         isCompleted
           ? 'bg-slate-900/40 border-slate-800/60 opacity-85'
           : 'bg-slate-900/80 border-slate-800 hover:border-slate-700'
       }`}
     >
-      <div className="flex items-center gap-4 min-w-0">
+      <div className="flex items-center gap-3 sm:gap-4 min-w-0 w-full sm:w-auto">
         {/* Habit Icon Container */}
         <div
-          className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-lg"
+          className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 shadow-lg"
           style={{ backgroundColor: `${habit.color}20`, color: habit.color }}
         >
-          {getIcon(habit.icon, { className: 'w-6 h-6' })}
+          {getIcon(habit.icon, { className: 'w-5 h-5 sm:w-6 sm:h-6' })}
         </div>
 
         {/* Info */}
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <h3
-              className={`font-bold text-base truncate ${
+              className={`font-bold text-sm sm:text-base truncate ${
                 isCompleted ? 'line-through text-slate-400' : 'text-white'
               }`}
             >
@@ -60,27 +60,27 @@ export const HabitCard: React.FC<HabitCardProps> = ({
             {habit.tags?.map((tag) => (
               <span
                 key={tag.id}
-                className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold rounded-md border"
+                className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-semibold rounded-md border"
                 style={{
                   backgroundColor: `${tag.color}15`,
                   borderColor: `${tag.color}30`,
                   color: tag.color,
                 }}
               >
-                {getIcon(tag.icon || 'tag', { className: 'w-3 h-3' })}
+                {getIcon(tag.icon || 'tag', { className: 'w-2.5 h-2.5 sm:w-3 sm:h-3' })}
                 <span>{tag.name}</span>
               </span>
             ))}
           </div>
 
-          <div className="flex items-center gap-3 text-xs text-slate-400 mt-1">
-            <span className="capitalize bg-slate-800/80 px-2 py-0.5 rounded text-[11px] font-medium text-slate-300">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-slate-400 mt-1">
+            <span className="capitalize bg-slate-800/80 px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-medium text-slate-300">
               {habit.frequency}
             </span>
-            <span className="text-indigo-400 font-semibold">+20 XP</span>
+            <span className="text-indigo-400 font-semibold text-[11px] sm:text-xs">+20 XP</span>
             {habit.currentStreak !== undefined && habit.currentStreak > 0 && (
-              <span className="flex items-center gap-1 text-orange-400 font-medium">
-                <Flame className="w-3.5 h-3.5 fill-orange-400" /> {habit.currentStreak} days
+              <span className="flex items-center gap-1 text-orange-400 font-medium text-[11px] sm:text-xs">
+                <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-orange-400" /> {habit.currentStreak} days
               </span>
             )}
           </div>
@@ -88,47 +88,47 @@ export const HabitCard: React.FC<HabitCardProps> = ({
       </div>
 
       {/* Action Controls */}
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center justify-end gap-2 w-full sm:w-auto shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800/50">
         {onEdit && (
           <button
             onClick={() => onEdit(habit)}
             title="Edit Habit"
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
           >
-            <Edit2 className="w-4 h-4" />
+            <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
         )}
         {onDelete && (
           <button
             onClick={() => onDelete(habit.id)}
             title="Delete Habit"
-            className="p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+            className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
         )}
 
-        {/* Action Button: "Done" with loading state & disabled completed state */}
+        {/* Action Button */}
         {onToggleComplete && (
           <div>
             {isCompleted ? (
               <button
                 disabled
-                className="px-4 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-1.5 cursor-default select-none"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-1.5 cursor-default select-none"
               >
                 <Check className="w-3.5 h-3.5 stroke-[3]" /> Done
               </button>
             ) : loading ? (
               <button
                 disabled
-                className="px-4 py-2 rounded-xl bg-indigo-600/50 border border-indigo-500/30 text-indigo-200 text-xs font-bold flex items-center gap-1.5 cursor-wait select-none"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-indigo-600/50 border border-indigo-500/30 text-indigo-200 text-xs font-bold flex items-center gap-1.5 cursor-wait select-none"
               >
                 <Loader2 className="w-3.5 h-3.5 animate-spin" /> Marking...
               </button>
             ) : (
               <button
                 onClick={handleMarkDone}
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-indigo-600/30 transition-all cursor-pointer"
+                className="px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-indigo-600/30 transition-all cursor-pointer"
               >
                 <Check className="w-3.5 h-3.5 stroke-[3]" /> Done
               </button>
